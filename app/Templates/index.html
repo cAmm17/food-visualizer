@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"
         integrity="sha512-yNJzAsg5JyP91u+sLHlUDULMBd3hmEiVkYeeN1cQBKaLZ7EyT6oH2u5THNIRM2Fu6VKcZJv+F/QAp1h/qzy9Ow=="
         crossorigin="anonymous"></script>
-<script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="{{ url_for('static', filename='js/ammo.js') }}"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script>window.jQuery || document.write('<script src="{{
@@ -12,7 +14,7 @@
 </script>
 <script>
     //variables
-    let firstModel, physicsWorld, clock, scene, camera, renderer, rigidBodies = [], selectedFoods = [],
+    let firstModel, physicsWorld, clock, scene, camera, renderer, rigidBodies = [], selectedFoodsLst = [],
      tmpTrans, blockObj, modelPath, modelRadius, curFood;
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
@@ -202,8 +204,9 @@ function createBall(position) {
 
       loader.load( modelPath, function ( obj ) {
 
-      if (!array.includes(curFood) {
-        selectedFoods.push(curFood);
+      if (!selectedFoodsLst.includes(curFood)) {
+        selectedFoodsLst.push(curFood);
+        updateList();
       }
 
 	  obj.scene.position.set(pos.x, pos.y, pos.z);
@@ -290,10 +293,10 @@ function updatePhysics( deltaTime ){
 </script>
 <div id="add_food_panel">
   {% for food in available_foods %}
-  <span id="food_{{ food.name }}">
+  <ul id="food_{{ food.name }}">
                     <a href="javascript:addFood(
                                 '#food_{{ food.name }}');">{{ food.name }}</a>
-          </span>
+          </ul>
   {% endfor %}
   <form action="" method="get">
     <div>
@@ -314,7 +317,7 @@ function updatePhysics( deltaTime ){
 
 
 <div id="view_food_panel">
-  <div id="selectedFoods">
+  <div id="selectedFoodsPanel">
 
   </div>
   <form action="" id="view_food_save_selected">
@@ -368,72 +371,36 @@ function updatePhysics( deltaTime ){
 <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
 <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
-<script>
+<script type="text/babel">
 function ListItem(props) {
-  // Correct! There is no need to specify the key here:
   return <li>{props.value}</li>;
 }
 
-function selectedFoodList(props) {
+function SelectedFoodList(props) {
   const foods = props.selectedFoods;
   const listItems = foods.map((food) =>
-    // Correct! Key should be specified inside the array.
     <ListItem key={food.toString()} value={food.toString()} />
   );
   return (
     <ul>
+      <a href="">
       {listItems}
+      </a>
     </ul>
   );
 }
 
 
-ReactDOM.render(
-  <NumberList numbers={numbers} />,
-  document.getElementById('root')
-);
-
-
-  class selectedFoodsList extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {foods: props.selectedFoods};
-  }
-
-  componentDidMount() {
-    const listItems = foods.map((food) =>
-      // Correct! Key should be specified inside the array.
-      <ListItem key={food.toString()} value={food.toString()} />
-    );
-    this.timerID = setInterval(
-      () => this.tick(),
-      1000
-    );
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timerID);
-  }
-
-  tick() {
-    this.setState({
-      date: new Date()
-    });
-  }
-
-  render() {
-    return (
-      <div>
-
-      </div>
-    );
-  }
+function updateList() {
+  ReactDOM.render(
+    <SelectedFoodList selectedFoods={selectedFoodsLst} />,
+    document.getElementById('selectedFoodsPanel')
+  );
 }
 
-  ReactDOM.render(
-  document.getElementById('selectedFoods')
-  )
+
 </script>
 
 
