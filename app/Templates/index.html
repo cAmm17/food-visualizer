@@ -14,10 +14,14 @@
 </script>
 <script>
     //variables
-    let firstModel, physicsWorld, clock, scene, camera, renderer, rigidBodies = [], selectedFoodsLst = [],
+    let firstModel, physicsWorld, clock, scene, camera, renderer, rigidBodies = [],
      tmpTrans, blockObj, modelPath, modelRadius, curFood;
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
+    let selectedFoodsLst = {};
+    selectedFoodsLst["All"] = 0;
+
+
     Ammo().then( start )
 
     function start(){
@@ -83,11 +87,11 @@
     dirLight.shadow.camera.far = 13500;
 
     //Setup the renderer
-    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    let threeCanvas = document.getElementById('threejsCanvas');
+    renderer = new THREE.WebGLRenderer( { antialias: true, canvas: threeCanvas} );
     renderer.setClearColor( 0xbfd1e5 );
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
 
     renderer.gammaInput = true;
     renderer.gammaOutput = true;
@@ -204,9 +208,12 @@ function createBall(position) {
 
       loader.load( modelPath, function ( obj ) {
 
-      if (!selectedFoodsLst.includes(curFood)) {
-        selectedFoodsLst.push(curFood);
+      if (!(curFood in selectedFoodsLst)) {
+        selectedFoodsLst[curFood] = 1;
         updateList();
+      }
+      else {
+        selectedFoodsLst[curFood] += 1;
       }
 
 	  obj.scene.position.set(pos.x, pos.y, pos.z);
@@ -289,84 +296,66 @@ function updatePhysics( deltaTime ){
             })
 }
 
+function selectAddedFood(sourceElem) {
+  $.post('/selectAddedFood', {
+        food: sourceElem.textContent,
+        allSelected: JSON.stringify(selectedFoodsLst)
+        }).done(function(response) {
+            updateSelectedFoodNutrition(response['name'], response['calories'],
+            response['carbohydrates'], response['protein'], response['fat'])
+        }).fail(function() {
+           console.log("ERROR :: failed to retrieve food nutrition." );
+        })
+
+}
 
 </script>
-<div id="add_food_panel">
-  {% for food in available_foods %}
-  <ul id="food_{{ food.name }}">
-                    <a href="javascript:addFood(
-                                '#food_{{ food.name }}');">{{ food.name }}</a>
-          </ul>
-  {% endfor %}
-  <form action="" method="get">
-    <div>
-      <label for="add_food_list">Select a Food item</label>
-      <select name="add_food_list" id="add_food_list">
+<div id="menu">
 
-      </select>
+
+  <div id="add_food_panel">
+    {% for food in available_foods %}
+    <ul id="food_{{ food.name }}">
+                      <a href="javascript:addFood(
+                                  '#food_{{ food.name }}');">{{ food.name }}</a>
+            </ul>
+    {% endfor %}
+    <form action="" method="get">
+      <div>
+        <label for="add_food_list">Select a Food item</label>
+        <select name="add_food_list" id="add_food_list">
+
+        </select>
+      </div>
+      <div>
+        <label for="add_food_amount">Select an amount to add</label>
+        <input type="text" id="add_food_amount" name="add_food_amount"><br><br>
+      </div>
+      <div>
+        <input type="submit" value="Add Food">
+      </div>
+    </form>
+  </div>
+
+
+  <div id="view_food_panel">
+    <div id="selectedFoodsPanel">
+
     </div>
-    <div>
-      <label for="add_food_amount">Select an amount to add</label>
-      <input type="text" id="add_food_amount" name="add_food_amount"><br><br>
-    </div>
-    <div>
-      <input type="submit" value="Add Food">
-    </div>
-  </form>
+    <form action="" id="view_food_save_selected">
+        <input type="submit" value="Save the current portion">
+    </form>
+  </div>
+
+  <div id="nutrition_panel">
+
+  </div>
+
 </div>
 
+<canvas width=100% height=90% id="threejsCanvas"></canvas>
 
-<div id="view_food_panel">
-  <div id="selectedFoodsPanel">
 
-  </div>
-  <form action="" id="view_food_save_selected">
-      <input type="submit" value="Save the current portion">
-  </form>
-</div>
-
-<div id="nutrition_panel">
-  <div>
-    <span>
-      Name:
-    </span>
-    <span>
-      {{ selected_food.name }}
-    </span>
-  </div>
-  <div>
-    <span>
-      Calories:
-    </span>
-    <span>
-      {{ selected_food.calories }}
-    </span>
-  </div>
-  <div>
-    <span>
-      Carbohydrates:
-    </span>
-    <span>
-      {{ selected_food.carbohydrates }}g
-    </span>
-  </div>
-  <div>
-    <span>
-      Protein:
-    </span>
-    <span>
-      {{ selected_food.protein }}g
-    </span>
-  </div>
-  <div>
-    <span>
-      Fat
-    </span>
-    <span>
-      {{ selected_food.fat }}g
-    </span>
-  </div>
-</div>
 
 <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
 <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
@@ -375,19 +364,17 @@ function updatePhysics( deltaTime ){
 
 <script type="text/babel">
 function ListItem(props) {
-  return <li>{props.value}</li>;
+  return <li onClick={(e) => selectAddedFood(e.target)}> {props.value}</li>;
 }
 
 function SelectedFoodList(props) {
-  const foods = props.selectedFoods;
+  const foods = Object.keys(props.selectedFoods);
   const listItems = foods.map((food) =>
-    <ListItem key={food.toString()} value={food.toString()} />
+    <ListItem key={food.toString()} value={food.toString()}  />
   );
   return (
     <ul>
-      <a href="">
-      {listItems}
-      </a>
+        {listItems}
     </ul>
   );
 }
@@ -400,6 +387,60 @@ function updateList() {
   );
 }
 
+function NutritionPanel(props) {
+  return (
+  <div>
+    <div>
+      <span>
+        Name:
+      </span>
+      <span>
+        {props.name}
+      </span>
+    </div>
+    <div>
+      <span>
+        Calories:
+      </span>
+      <span>
+        {props.calories}
+      </span>
+    </div>
+    <div>
+      <span>
+        Carbohydrates:
+      </span>
+      <span>
+        {props.carbohydrates}g
+      </span>
+    </div>
+    <div>
+      <span>
+        Protein:
+      </span>
+      <span>
+        {props.protein}g
+      </span>
+    </div>
+    <div>
+      <span>
+        Fat
+      </span>
+      <span>
+        {props.fat}g
+      </span>
+    </div>
+  </div>
+  );
+}
+
+function updateSelectedFoodNutrition(foodName, foodCals, foodCarbs, foodPro, foodFat) {
+let props = {name:foodName, calories:foodCals, carbohydrates:foodCarbs, protein:foodPro, fat:foodFat};
+  ReactDOM.render(
+  <NutritionPanel {...props} />,
+  document.getElementById('nutrition_panel')
+  );
+}
 
 </script>
 

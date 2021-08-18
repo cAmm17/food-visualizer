@@ -1,6 +1,8 @@
-from flask import jsonify, render_template, request
+from flask import render_template, request
 from app import app
-from models import *
+import json
+from .models import *
+
 
 available_foods = [{'name': 'Banana', 'modelPath': 'models/banana_whole.glb',
                     'collisionRadius': '3'},
@@ -29,9 +31,7 @@ foods_to_select = {'Banana' : {'name': 'Banana',
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html', available_foods=available_foods,
-                           selected_foods=selected_foods,
-                           selected_food=foods_to_select[selected_food])
+    return render_template('index.html', available_foods=available_foods)
 
 
 @app.route('/addFood', methods=['POST'])
@@ -40,8 +40,10 @@ def addFood():
     # add database call here once it's setup, for now just test data
     return addFoodModel(strippedFoodName)
 
-@app.route('/select_added_food', methods=['POST'])
+
+@app.route('/selectAddedFood', methods=['POST'])
 def selectAddedFood():
     # add database call here when they are set up
     strippedFoodName = request.form['food'].strip()
-    return processNutritionInfo(strippedFoodName, selected_foods)
+    processed_selected = json.loads(request.form['allSelected'])
+    return processNutritionInfo(strippedFoodName, foods_to_select, processed_selected)

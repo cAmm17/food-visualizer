@@ -4,6 +4,12 @@ from config import Config
 # create and configure the app
 app = Flask(__name__)
 app.config.from_object(Config)
+
+@app.after_request
+def add_header(response):
+    if 'Cache-Control' not in response.headers:
+        response.headers["Cache-Control"] = "no-cache, no-store"  # HTTP 1.1.
+    return response
 # app.config.from_mapping(
 #   SECRET_KEY='dev',
 #  DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),

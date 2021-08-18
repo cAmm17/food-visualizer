@@ -20,18 +20,20 @@ foods_to_select = {'Banana': {'name': 'Banana',
                        'carbohydrates': '1'
                    }}
 
-def processNutritionInfo(foodName, selected_foods):
+def processNutritionInfo(foodName, foods_info, selected_amounts):
     """Takes the inputed name and returns the nutritional info. If the info is all, then it
     adds up the nutritional info of all selected foods."""
     try:
         if (foodName == 'All'):
             allFoods = {'calories' : 0.0, 'fat' : 0.0, 'carbohydrates': 0.0, 'protein': 0.0 }
-            for food in selected_foods:
+            for food in selected_amounts:
                 #db call here
-                allFoods['calories'] += float(food['calories'])
-                allFoods['fat'] += float(food['fat'])
-                allFoods['carbohydrates'] += float(food['carbohydrates'])
-                allFoods['protein'] += float(food['protein'])
+                if food != 'All':
+                    amount = selected_amounts[food]
+                    allFoods['calories'] += float(foods_info['calories']) * amount
+                    allFoods['fat'] += float(foods_info['fat']) * amount
+                    allFoods['carbohydrates'] += float(foods_info['carbohydrates']) * amount
+                    allFoods['protein'] += float(foods_info['protein']) * amount
 
             return jsonify({'name': 'All Foods In Scene', 'calories' : str(allFoods['calories']),
                             'fat' : str(allFoods['fat']),
@@ -39,10 +41,16 @@ def processNutritionInfo(foodName, selected_foods):
                             'protein' : str(allFoods['protein'])})
         else:
             #database call here
-            return jsonify({'name': foodName, 'calories': foods_to_select[foodName]['calories'],
-                            'fat': foods_to_select[foodName]['fat'],
-                            'carbohydrates': foods_to_select[foodName]['carbohydrates'],
-                            'protein': foods_to_select[foodName]['protein']})
+            amount = selected_amounts[foodName]
+            totalFat = float(foods_info[foodName]['fat']) * amount
+            totalCals = float(foods_info[foodName]['calories']) * amount
+            totalCarbs = float(foods_info[foodName]['carbohydrates']) * amount
+            totalProtein = float(foods_info[foodName]['protein']) * amount
+
+            return jsonify({'name': foodName, 'calories': totalCals,
+                            'fat': totalFat,
+                            'carbohydrates': totalCarbs,
+                            'protein': totalProtein})
 
     except (KeyError):
         app.logger.error('ERROR :: Could not find nutritional information for selected foods')
