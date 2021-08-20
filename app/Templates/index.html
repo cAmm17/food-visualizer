@@ -315,9 +315,9 @@ function selectAddedFood(sourceElem) {
 
   <div id="add_food_panel">
     {% for food in available_foods %}
-    <ul id="food_{{ food.name }}">
+    <ul id="food_{{ food }}">
                       <a href="javascript:addFood(
-                                  '#food_{{ food.name }}');">{{ food.name }}</a>
+                                  '#food_{{ food }}');">{{ food }}</a>
             </ul>
     {% endfor %}
     <form action="" method="get">

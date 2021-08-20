@@ -11,6 +11,7 @@ db = SQLAlchemy(app)
 # Migrate is a tool to help migrate databases as the application's needs change
 mig = Migrate(app, db)
 
+
 @app.after_request
 def add_header(response):
     if 'Cache-Control' not in response.headers:

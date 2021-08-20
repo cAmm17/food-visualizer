@@ -1,13 +1,9 @@
 from flask import render_template, request
-from app import app
+from app import app, db
 import json
 from .models import *
 
 
-available_foods = [{'name': 'Banana', 'modelPath': 'models/banana_whole.glb',
-                    'collisionRadius': '3'},
-                   {'name': 'Blueberries', 'modelPath': 'models/blueberry.glb',
-                    'collisionRadius': '1'}]
 available_foods_dict = {'Banana': {'modelPath': 'models/banana_whole.glb',
                                    'collisionRadius': '3'},
                         'Blueberries': {'modelPath': 'models/blueberry.glb',
@@ -31,6 +27,8 @@ foods_to_select = {'Banana' : {'name': 'Banana',
 @app.route('/')
 @app.route('/index')
 def index():
+    foods = Food.query.all()
+    available_foods = {food.food_name for food in foods}
     return render_template('index.html', available_foods=available_foods)
 
 

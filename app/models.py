@@ -26,7 +26,7 @@ def processNutritionInfo(foodName, foods_info, selected_amounts):
     """Takes the inputed name and returns the nutritional info. If the info is all, then it
     adds up the nutritional info of all selected foods."""
     try:
-        if (foodName == 'All'):
+        if foodName == 'All':
             allFoods = {'calories': 0.0, 'fat': 0.0, 'carbohydrates': 0.0, 'protein': 0.0}
             for food in selected_amounts:
                 # db call here
@@ -63,9 +63,9 @@ def processNutritionInfo(foodName, foods_info, selected_amounts):
 def addFoodModel(foodName):
     """Takes the selected food and returns it's model path and the collision radius for that
     model. On the client side, the selected food is also added to a list of selected foods"""
-    return jsonify({'newModelPath': available_foods_dict[foodName]['modelPath'],
-                    'newCollisionRadius': available_foods_dict[foodName][
-                        'collisionRadius']})
+    f = Food.query.filter_by(food_name=foodName).first_or_404()
+    return jsonify({'newModelPath': f.model_path,
+                    'newCollisionRadius': f.collision_radius})
 
 
 # Database Models ####################################################################
@@ -78,11 +78,16 @@ class Food(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     food_name = db.Column(db.String(64), index=True, unique=True)
     model_path = db.Column(db.String(120), index=True, unique=True)
-    calories = db.Column(db.Integer, nullable=False)
+    collision_radius = db.Column(db.Float, nullable=False)
+    calories = db.Column(db.Float, nullable=False)
     carbohydrates = db.Column(db.Float, nullable=False)
     sugar = db.Column(db.Float, nullable=False)
+    fiber = db.Column(db.Float, nullable=False)
     fat = db.Column(db.Float, nullable=False)
     saturated_fat = db.Column(db.Float, nullable=False)
+    trans_fat = db.Column(db.Float, nullable=False)
+    monounsaturated_fat = db.Column(db.Float, nullable=False)
+    polyunsaturated_fat = db.Column(db.Float, nullable=False)
     protein = db.Column(db.Float, nullable=False)
     in_portions = db.relationship('FoodsInPortions', backref='food', lazy=True)
 
