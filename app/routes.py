@@ -29,19 +29,19 @@ foods_to_select = {'Banana' : {'name': 'Banana',
 def index():
     foods = Food.query.all()
     available_foods = {food.food_name for food in foods}
+    for food in available_foods:
+        app.logger.error(food + "\n")
     return render_template('index.html', available_foods=available_foods)
 
 
 @app.route('/addFood', methods=['POST'])
 def addFood():
-    strippedFoodName = request.form['food'].strip()
-    # add database call here once it's setup, for now just test data
-    return addFoodModel(strippedFoodName)
+    stripped_food_name = request.form['food'].strip()
+    return addFoodModel(stripped_food_name)
 
 
 @app.route('/selectAddedFood', methods=['POST'])
 def selectAddedFood():
-    # add database call here when they are set up
-    strippedFoodName = request.form['food'].strip()
+    stripped_food_name = request.form['food'].strip()
     processed_selected = json.loads(request.form['allSelected'])
-    return processNutritionInfo(strippedFoodName, foods_to_select, processed_selected)
+    return processNutritionInfo(stripped_food_name, foods_to_select, processed_selected)

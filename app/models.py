@@ -27,35 +27,37 @@ def processNutritionInfo(foodName, foods_info, selected_amounts):
     adds up the nutritional info of all selected foods."""
     try:
         if foodName == 'All':
-            allFoods = {'calories': 0.0, 'fat': 0.0, 'carbohydrates': 0.0, 'protein': 0.0}
+            all_foods = {'calories': 0.0, 'fat': 0.0, 'carbohydrates': 0.0, 'protein': 0.0}
             for food in selected_amounts:
                 # db call here
                 if food != 'All':
                     amount = selected_amounts[food]
-                    allFoods['calories'] += float(foods_info['calories']) * amount
-                    allFoods['fat'] += float(foods_info['fat']) * amount
-                    allFoods['carbohydrates'] += float(foods_info['carbohydrates']) * amount
-                    allFoods['protein'] += float(foods_info['protein']) * amount
+                    f = Food.query.filter_by(food_name=food).first_or_404()
+                    all_foods['calories'] += f.calories * amount
+                    all_foods['fat'] += f.fat * amount
+                    all_foods['carbohydrates'] += f.carbohydrates * amount
+                    all_foods['protein'] += f.protein * amount
 
-            return jsonify({'name': 'All Foods In Scene', 'calories': str(allFoods['calories']),
-                            'fat': str(allFoods['fat']),
-                            'carbohydrates': str(allFoods['carbohydrates']),
-                            'protein': str(allFoods['protein'])})
+            return jsonify({'name': 'All Foods In Scene', 'calories': str(all_foods['calories']),
+                            'fat': str(all_foods['fat']),
+                            'carbohydrates': str(all_foods['carbohydrates']),
+                            'protein': str(all_foods['protein'])})
         else:
-            # database call here
             amount = selected_amounts[foodName]
-            totalFat = float(foods_info[foodName]['fat']) * amount
-            totalCals = float(foods_info[foodName]['calories']) * amount
-            totalCarbs = float(foods_info[foodName]['carbohydrates']) * amount
-            totalProtein = float(foods_info[foodName]['protein']) * amount
+            f = Food.query.filter_by(food_name=foodName).first_or_404()
+            total_fat = f.fat * amount
+            total_cals = f.calories * amount
+            total_carbs = f.carbohydrates * amount
+            total_protein = f.protein * amount
 
-            return jsonify({'name': foodName, 'calories': totalCals,
-                            'fat': totalFat,
-                            'carbohydrates': totalCarbs,
-                            'protein': totalProtein})
+            return jsonify({'name': foodName, 'calories': total_cals,
+                            'fat': total_fat,
+                            'carbohydrates': total_carbs,
+                            'protein': total_protein})
 
     except (KeyError):
         app.logger.error('ERROR :: Could not find nutritional information for selected foods')
+        app.logger.error('Food Name: ' + foodName + " selected_amounts" + str(selected_amounts))
         return jsonify({'name': 'Not Found', 'calories': '0.0', 'fat': '0.0',
                         'carbohydrates': '0.0', 'protein': '0.0'})
 

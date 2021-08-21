@@ -185,7 +185,7 @@ function createBall(position) {
        modelRadius = 3;
        modelPath = "{{ url_for('static', filename='models/banana_whole.glb') }}";
        firstModel = false;
-       curFood = "Banana";
+       curFood = "Banana (Medium, 7in)";
     }
     let pos = position;
     let radius = modelRadius;
@@ -314,12 +314,7 @@ function selectAddedFood(sourceElem) {
 
 
   <div id="add_food_panel">
-    {% for food in available_foods %}
-    <ul id="food_{{ food }}">
-                      <a href="javascript:addFood(
-                                  '#food_{{ food }}');">{{ food }}</a>
-            </ul>
-    {% endfor %}
+    {% for food in available_foods %}<ul id="food_{{ food }}"><a href="javascript:addFood('#food_{{ food }}');">{{ food }}</a></ul>{% endfor %}
     <form action="" method="get">
       <div>
         <label for="add_food_list">Select a Food item</label>
