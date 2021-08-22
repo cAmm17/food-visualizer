@@ -55,7 +55,7 @@
 
     //create camera
     camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 5000 );
-    camera.position.set( 0, 30, 70 );
+    camera.position.set( 0, 30, 15 );
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     //Add hemisphere light
@@ -315,21 +315,6 @@ function selectAddedFood(sourceElem) {
 
   <div id="add_food_panel">
     {% for food in available_foods %}<ul id="food_{{ food }}"><a href="javascript:addFood('#food_{{ food }}');">{{ food }}</a></ul>{% endfor %}
-    <form action="" method="get">
-      <div>
-        <label for="add_food_list">Select a Food item</label>
-        <select name="add_food_list" id="add_food_list">
-
-        </select>
-      </div>
-      <div>
-        <label for="add_food_amount">Select an amount to add</label>
-        <input type="text" id="add_food_amount" name="add_food_amount"><br><br>
-      </div>
-      <div>
-        <input type="submit" value="Add Food">
-      </div>
-    </form>
   </div>
 
 
@@ -337,9 +322,6 @@ function selectAddedFood(sourceElem) {
     <div id="selectedFoodsPanel">
 
     </div>
-    <form action="" id="view_food_save_selected">
-        <input type="submit" value="Save the current portion">
-    </form>
   </div>
 
   <div id="nutrition_panel">

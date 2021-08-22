@@ -1,27 +1,9 @@
-from flask import render_template, request
+from flask import render_template, request, redirect, flash, url_for
 from app import app, db
+from flask_login import current_user, login_user, logout_user
 import json
 from .models import *
-
-
-available_foods_dict = {'Banana': {'modelPath': 'models/banana_whole.glb',
-                                   'collisionRadius': '3'},
-                        'Blueberries': {'modelPath': 'models/blueberry.glb',
-                                      'collisionRadius': '1'}}
-selected_foods={}
-selected_food = "Banana"
-foods_to_select = {'Banana' : {'name': 'Banana',
-                 'calories': '80',
-                 'fat': '1.2',
-                 'protein': '1.0',
-                 'carbohydrates': '10.0'},
-                   'Blueberries' : {
-                       'name': 'Blueberries',
-                       'calories': '3',
-                       'fat': '0.1',
-                       'protein': '0.1',
-                       'carbohydrates': '1'
-                   }}
+from .forms import *
 
 
 @app.route('/')
@@ -31,7 +13,7 @@ def index():
     available_foods = {food.food_name for food in foods}
     for food in available_foods:
         app.logger.error(food + "\n")
-    return render_template('index.html', available_foods=available_foods)
+    return render_template('index.html', available_foods=available_foods, logged_in=False)
 
 
 @app.route('/addFood', methods=['POST'])
@@ -44,4 +26,28 @@ def addFood():
 def selectAddedFood():
     stripped_food_name = request.form['food'].strip()
     processed_selected = json.loads(request.form['allSelected'])
-    return processNutritionInfo(stripped_food_name, foods_to_select, processed_selected)
+    return processNutritionInfo(stripped_food_name, processed_selected)
+
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    """
+    This route leads to the login page
+    """
+    if current_user.is_authenticated():
+        return redirect(url_for('index'))
+    log_form = LoginForm()
+    if log_form.validate_on_submit():
+        user = User.query.filter_by(username=log_form.username.data).first()
+        if user is None or not user.check_password(log_form.password.form_data):
+            flash("Username or Password incorrect")
+            return redirect(url_for('login'))
+        login_user(user, remember=log_form.remember_me.data)
+        return redirect("/index")
+    return render_template('login.html', title="Sign in", form=log_form)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))

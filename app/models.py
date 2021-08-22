@@ -1,28 +1,12 @@
 from flask import jsonify, request
 import logging
 from datetime import datetime
-from app import app, db
-
-available_foods_dict = {'Banana': {'modelPath': 'models/banana_whole.glb',
-                                   'collisionRadius': '3'},
-                        'Blueberries': {'modelPath': 'models/blueberry.glb',
-                                        'collisionRadius': '1'}}
-
-foods_to_select = {'Banana': {'name': 'Banana',
-                              'calories': '80',
-                              'fat': '1.2',
-                              'protein': '1.0',
-                              'carbohydrates': '10.0'},
-                   'Blueberries': {
-                       'name': 'Blueberries',
-                       'calories': '3',
-                       'fat': '0.1',
-                       'protein': '0.1',
-                       'carbohydrates': '1'
-                   }}
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+from app import app, db, login
 
 
-def processNutritionInfo(foodName, foods_info, selected_amounts):
+def processNutritionInfo(foodName, selected_amounts):
     """Takes the inputed name and returns the nutritional info. If the info is all, then it
     adds up the nutritional info of all selected foods."""
     try:
@@ -101,7 +85,7 @@ class Food(db.Model):
         return "<food {}>".format(self.food_name) + "<model_path {}".format(self.model_path)
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     """
     Database that stores users
     """
@@ -111,8 +95,29 @@ class User(db.Model):
     password_hash = db.Column(db.String(64), index=True, nullable=False)
     portions = db.relationship('Portion', backref='user', lazy=False)
 
+    def set_password(self, password):
+        """
+        Takes the user's inputed password and creates a password hash to be stored on the server
+        :param password: the password to be set as the user's password
+        :return: void
+        """
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """
+        checks the inputted password's hash against the user's saved password hash
+        :param password: the password to be checked against the saved hash
+        :return: boolean: if the password hashes match or not
+        """
+        return check_password_hash(self.password_hash, password)
+
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 
 class Portion(db.Model):
