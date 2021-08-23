@@ -34,7 +34,7 @@ def login():
     """
     This route leads to the login page
     """
-    if current_user.is_authenticated():
+    if current_user.is_authenticated:
         return redirect(url_for('index'))
     log_form = LoginForm()
     if log_form.validate_on_submit():
@@ -51,3 +51,20 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@app.route('/register', methods=['POST', 'GET'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    reg_form = RegistrationForm()
+    if reg_form.validate_on_submit():
+        user = User()
+        user.username = reg_form.username.data
+        user.email = reg_form.email.data
+        user.set_password(reg_form.password1.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('You have successfully registered your new account.')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=reg_form)
