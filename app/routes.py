@@ -62,7 +62,7 @@ def register():
         user = User()
         user.username = reg_form.username.data
         user.email = reg_form.email.data
-        user.set_password(reg_form.password1.data)
+        user.set_password(reg_form.password.data)
         db.session.add(user)
         db.session.commit()
         flash('You have successfully registered your new account.')
