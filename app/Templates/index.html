@@ -119,6 +119,7 @@
 
         window.addEventListener( 'click', handleClick, false);
         window.addEventListener( 'mousemove', onMouseMove, false );
+        window.addEventListener( 'keypress', onKeyPress, false);
 
     }
 
@@ -136,6 +137,20 @@
     function onMouseMove(event) {
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    }
+
+    function onKeyPress(event) {
+      if (event.code == 68) {
+        raycaster.setFromCamera( mouse, camera );
+        const intersects = raycaster.intersectObjects( scene.children );
+        const intersect = intersects[0];
+        if (!(typeof intersect==='undefined') && intersect.name != "floor") {
+          physicsWorld.removeRigidBoy(intersect.scene.userData.physicsBody);
+          scene.remove(intersect);
+          intersect.dispose();
+
+        }
+      }
     }
 
     function createBlock(){
@@ -221,7 +236,7 @@ function createBall(position) {
       obj.castShadow = true;
       obj.scene.receiveShadow = true;
 
-      scene.add( obj.scene );
+      //scene.add( obj.scene );
 
 
     //Ammojs Section
@@ -244,6 +259,7 @@ function createBall(position) {
     physicsWorld.addRigidBody( body );
 
     obj.scene.userData.physicsBody = body;
+    scene.add( obj.scene );
     rigidBodies.push(obj.scene);
 
     },
@@ -308,6 +324,16 @@ function selectAddedFood(sourceElem) {
         })
 
 }
+function savePortion(sourceElem) {
+  $.post('/save_portion', {
+  allSelected: JSON.stringify(selectedFoodsLst),
+  portion_title:,
+  portion_notes
+  }), done(function(response) {
+  }).fail(function() {
+    console.log("ERROR :: failed to save portion." );
+  })
+}
 
 </script>
 <div id="menu">
@@ -328,6 +354,13 @@ function selectAddedFood(sourceElem) {
 
   </div>
 
+  {% if logged_in %}
+  <label for="portion_title">Portion Title</label>
+  <input type="text" id="portion_title">
+  <label for="portion_notes">Portion Notes</label>
+  <input type="text" id="portion_notes">
+  <button id="save_button">Save</button>
+  {% endif %}
 </div>
 
 <canvas width=100% height=90% id="threejsCanvas"></canvas>

@@ -50,3 +50,8 @@ class RegistrationForm(FlaskForm):
         if digit_error or upper_error or lower_error or special_error:
             raise ValidationError('Please include at least one upper case letter, one lower case '
                                   'letter,one special character, and one digit in your password')
+
+
+class PortionForm(FlaskForm):
+    title = StringField('Title', validators=[Length(0, 64)])
+    notes = StringField('Notes', validators=[Length(0, 255)])

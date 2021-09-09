@@ -2,7 +2,7 @@ from flask import jsonify, request
 import logging
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
 from app import app, db, login
 
 
@@ -22,10 +22,10 @@ def processNutritionInfo(foodName, selected_amounts):
                     all_foods['carbohydrates'] += f.carbohydrates * amount
                     all_foods['protein'] += f.protein * amount
 
-            return jsonify({'name': 'All Foods In Scene', 'calories': str(all_foods['calories']),
+            return {'name': 'All Foods In Scene', 'calories': str(all_foods['calories']),
                             'fat': str(all_foods['fat']),
                             'carbohydrates': str(all_foods['carbohydrates']),
-                            'protein': str(all_foods['protein'])})
+                            'protein': str(all_foods['protein'])}
         else:
             amount = selected_amounts[foodName]
             f = Food.query.filter_by(food_name=foodName).first_or_404()
@@ -34,10 +34,10 @@ def processNutritionInfo(foodName, selected_amounts):
             total_carbs = f.carbohydrates * amount
             total_protein = f.protein * amount
 
-            return jsonify({'name': foodName, 'calories': total_cals,
+            return {'name': foodName, 'calories': total_cals,
                             'fat': total_fat,
                             'carbohydrates': total_carbs,
-                            'protein': total_protein})
+                            'protein': total_protein}
 
     except (KeyError):
         app.logger.error('ERROR :: Could not find nutritional information for selected foods')
@@ -50,8 +50,56 @@ def addFoodModel(foodName):
     """Takes the selected food and returns it's model path and the collision radius for that
     model. On the client side, the selected food is also added to a list of selected foods"""
     f = Food.query.filter_by(food_name=foodName).first_or_404()
-    return jsonify({'newModelPath': f.model_path,
-                    'newCollisionRadius': f.collision_radius})
+    return {'newModelPath': f.model_path,
+                    'newCollisionRadius': f.collision_radius}
+
+
+def saveNewPortion(title, notes, selected_foods):
+    """Takes the currently selected portions and saves it to the database for that user
+    to reopen later"""
+    p = Portion()
+    p.title = title
+    p.notes = notes
+    p.user_id = User.query.filter_by(username=current_user.username).first().id
+    db.session.add(p)
+    for food in selected_foods:
+        f = FoodsInPortions()
+        f.food_id = Food.query.filter_by(food_name=food).first().id
+        f.portion_id = p.id
+        f.amount = selected_foods[food]
+        db.session.add(f)
+    db.session.commit()
+
+
+def loadUsersPortions():
+    if current_user.is_authenticated:
+        all_user_portions = {}
+        user_portions = Portion.query.filter_by(user_id=current_user.id).all()
+        if user_portions is not None:
+            for port in user_portions:
+                all_user_portions[port.id] = loadPortion(port.id)
+                all_user_portions[port.id]['title'] = port.title
+                all_user_portions[port.id]['notes'] = port.notes
+                all_user_portions[port.id]['timestamp'] = port.timestamp
+        return all_user_portions
+
+
+def loadPortion(p_id):
+    portion = {'foods': loadPortionFoods(p_id)}
+    nutrition = processNutritionInfo('All', portion["foods"])
+    for key in nutrition:
+        if key != 'name':
+            portion[key] = nutrition[key]
+    return portion
+
+
+def loadPortionFoods(p_id):
+    foods_in_portion = {}
+    temp_foods = FoodsInPortions.query.filter_by(portion_id=p_id).all()
+    for food in temp_foods:
+        food_name = Food.query.filter_by(id=food.food_id).first()
+        foods_in_portion[food_name] = food.amount
+    return foods_in_portion
 
 
 # Database Models ####################################################################
