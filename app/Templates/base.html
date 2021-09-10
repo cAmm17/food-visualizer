@@ -36,7 +36,7 @@
         </ul>
         {% if logged_in %}
         <span class="navbar-text">
-            <a class="nav-link" href="#">{{ username }}</a>
+            <a class="nav-link" href="{{ url_for('saved_portions') }}">{{ username }}</a>
          </span>
         <span class="navbar-text">
             <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>

@@ -30,7 +30,7 @@
 
                 setupGraphics();
                 createBlock();
-                createBall({x: 0, y: 20, z: 0});
+                //createBall({x: 0, y: 20, z: 0});
                 setupEventHandlers();
 
                 renderFrame();
@@ -140,11 +140,11 @@
     }
 
     function onKeyPress(event) {
-      if (event.code == 68) {
+      if (event.code == "KeyD") {
         raycaster.setFromCamera( mouse, camera );
         const intersects = raycaster.intersectObjects( scene.children );
         const intersect = intersects[0];
-        if (!(typeof intersect==='undefined') && intersect.name != "floor") {
+        if (!(typeof intersect==='undefined') && intersect.object.name != "floor") {
           physicsWorld.removeRigidBoy(intersect.scene.userData.physicsBody);
           scene.remove(intersect);
           intersect.dispose();
@@ -166,6 +166,7 @@
 
     blockPlane.position.set(pos.x, pos.y, pos.z);
     blockPlane.scale.set(scale.x, scale.y, scale.z);
+    blockPlane.name = "floor";
 
     blockPlane.castShadow = true;
     blockPlane.receiveShadow = true;
@@ -196,12 +197,12 @@
 
 
 function createBall(position) {
-    if (firstModel) {
+    /*if (firstModel) {
        modelRadius = 3;
-       modelPath = "{{ url_for('static', filename='models/banana_whole.glb') }}";
+       modelPath = "{{ url_for('static', filename='models/whole_banana.glb') }}";
        firstModel = false;
-       curFood = "Banana (Medium, 7in)";
-    }
+       curFood = "Whole_Banana";
+    }*/
     let pos = position;
     let radius = modelRadius;
     let quat = {x: 0, y: 0, z: 0, w: 1};
@@ -209,19 +210,9 @@ function createBall(position) {
 
     let newMesh;
     //threeJS Section
-    if(false) {
-      let newMesh = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0xff0505}));
-      newMesh.position.set(pos.x, pos.y, pos.z);
+     const loader = new THREE.GLTFLoader();
 
-      newMesh.castShadow = true;
-      newMesh.receiveShadow = true;
-
-      scene.add(newMesh);
-    }
-    else {
-      const loader = new THREE.GLTFLoader();
-
-      loader.load( modelPath, function ( obj ) {
+     loader.load( modelPath, function ( obj ) {
 
       if (!(curFood in selectedFoodsLst)) {
         selectedFoodsLst[curFood] = 1;
@@ -266,7 +257,6 @@ function createBall(position) {
     undefined, function ( error ) {
 	   console.error( error );
 } );
-    }
 
 }
 
@@ -324,12 +314,12 @@ function selectAddedFood(sourceElem) {
         })
 
 }
-function savePortion(sourceElem) {
+function savePortion() {
   $.post('/save_portion', {
   allSelected: JSON.stringify(selectedFoodsLst),
-  portion_title:,
-  portion_notes
-  }), done(function(response) {
+  portion_title: document.getElementById("portion_title").value,
+  portion_notes: document.getElementById("portion_notes").value
+  }).done(function(response) {
   }).fail(function() {
     console.log("ERROR :: failed to save portion." );
   })
@@ -340,7 +330,7 @@ function savePortion(sourceElem) {
 
 
   <div id="add_food_panel">
-    {% for food in available_foods %}<ul id="food_{{ food }}"><a href="javascript:addFood('#food_{{ food }}');">{{ food }}</a></ul>{% endfor %}
+    {% for food in available_foods %}<ul id="{{ food.replace(' ', '_') }}"><a href="javascript:addFood('#{{ food.replace(' ', '_') }}');">{{ food }}</a></ul>{% endfor %}
   </div>
 
 
@@ -359,7 +349,7 @@ function savePortion(sourceElem) {
   <input type="text" id="portion_title">
   <label for="portion_notes">Portion Notes</label>
   <input type="text" id="portion_notes">
-  <button id="save_button">Save</button>
+  <button id="save_button" onclick="savePortion();">Save</button>
   {% endif %}
 </div>
 

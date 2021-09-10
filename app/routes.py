@@ -10,7 +10,7 @@ from .forms import *
 @app.route('/index')
 def index():
     foods = Food.query.all()
-    available_foods = {food.food_name for food in foods}
+    available_foods = {food.food_name.replace("_", " ") for food in foods}
     portion_form = PortionForm()
     if current_user.is_authenticated:
         usernm = current_user.username
@@ -23,17 +23,20 @@ def index():
 @app.route('/addFood', methods=['POST'])
 def addFood():
     stripped_food_name = request.form['food'].strip()
+    stripped_food_name = stripped_food_name.replace(" ", "_")
     return jsonify(addFoodModel(stripped_food_name))
 
 
 @app.route('/selectAddedFood', methods=['POST'])
 def selectAddedFood():
     stripped_food_name = request.form['food'].strip()
+    stripped_food_name = stripped_food_name.replace(" ", "_")
+    print(stripped_food_name)
     processed_selected = json.loads(request.form['allSelected'])
     return jsonify(processNutritionInfo(stripped_food_name, processed_selected))
 
 
-@app.route('/save_portion', methods=['POST, GET'])
+@app.route('/save_portion', methods=['POST', 'GET'])
 def save_portion():
     if current_user.is_authenticated:
         processed_selected = json.loads(request.form['allSelected'])
@@ -85,7 +88,8 @@ def register():
 @app.route('/saved_portions')
 def saved_portions():
     if current_user.is_authenticated:
-        cur_user_portions = jsonify(loadUsersPortions())
-        return render_template('saved-portions.html', portions=cur_user_portions)
+        cur_user_portions = loadUsersPortions()
+        usernm = current_user.username
+        return render_template('saved-portions.html', portions=cur_user_portions, username=usernm)
     flash('You must be logged in to access this page')
     return redirect(url_for('login'))

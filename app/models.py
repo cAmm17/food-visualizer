@@ -16,6 +16,7 @@ def processNutritionInfo(foodName, selected_amounts):
                 # db call here
                 if food != 'All':
                     amount = selected_amounts[food]
+                    food = food.replace(" ", "_")
                     f = Food.query.filter_by(food_name=food).first_or_404()
                     all_foods['calories'] += f.calories * amount
                     all_foods['fat'] += f.fat * amount
@@ -27,7 +28,7 @@ def processNutritionInfo(foodName, selected_amounts):
                             'carbohydrates': str(all_foods['carbohydrates']),
                             'protein': str(all_foods['protein'])}
         else:
-            amount = selected_amounts[foodName]
+            amount = selected_amounts[foodName.replace("_", " ")]
             f = Food.query.filter_by(food_name=foodName).first_or_404()
             total_fat = f.fat * amount
             total_cals = f.calories * amount
@@ -42,8 +43,8 @@ def processNutritionInfo(foodName, selected_amounts):
     except (KeyError):
         app.logger.error('ERROR :: Could not find nutritional information for selected foods')
         app.logger.error('Food Name: ' + foodName + " selected_amounts" + str(selected_amounts))
-        return jsonify({'name': 'Not Found', 'calories': '0.0', 'fat': '0.0',
-                        'carbohydrates': '0.0', 'protein': '0.0'})
+        return {'name': 'Not Found', 'calories': '0.0', 'fat': '0.0',
+                        'carbohydrates': '0.0', 'protein': '0.0'}
 
 
 def addFoodModel(foodName):
