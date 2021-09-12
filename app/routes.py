@@ -16,7 +16,7 @@ def index():
         usernm = current_user.username
     else:
         usernm = ""
-    return render_template('index.html', available_foods=available_foods,
+    return render_template('index.html', available_foods=available_foods, initial_foods="",
                            logged_in=current_user.is_authenticated, username=usernm)
 
 
@@ -42,6 +42,8 @@ def save_portion():
         processed_selected = json.loads(request.form['allSelected'])
         saveNewPortion(request.form['portion_title'], request.form['portion_notes'],
                        processed_selected)
+        flash("Portion has been successfully saved!")
+    return
 
 
 @app.route('/login', methods=['POST', 'GET'])

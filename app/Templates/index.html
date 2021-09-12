@@ -18,7 +18,7 @@
      tmpTrans, blockObj, modelPath, modelRadius, curFood;
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    let selectedFoodsLst = {};
+    let selectedFoodsLst = {{ initialFoods }};
     selectedFoodsLst["All"] = 0;
 
 
@@ -125,7 +125,7 @@
 
     function handleClick(){
         raycaster.setFromCamera( mouse, camera );
-        const intersects = raycaster.intersectObjects( scene.children );
+        const intersects = raycaster.intersectObjects( scene.children, true );
         const intersect = intersects[0];
         if (!(typeof intersect==='undefined')) {
           createBall(intersect.point);
@@ -142,7 +142,7 @@
     function onKeyPress(event) {
       if (event.code == "KeyD") {
         raycaster.setFromCamera( mouse, camera );
-        const intersects = raycaster.intersectObjects( scene.children );
+        const intersects = raycaster.intersectObjects( scene.children, true );
         const intersect = intersects[0];
         if (!(typeof intersect==='undefined') && intersect.object.name != "floor") {
           physicsWorld.removeRigidBoy(intersect.scene.userData.physicsBody);
@@ -227,7 +227,7 @@ function createBall(position) {
       obj.castShadow = true;
       obj.scene.receiveShadow = true;
 
-      //scene.add( obj.scene );
+      scene.add( obj.scene );
 
 
     //Ammojs Section
@@ -250,7 +250,7 @@ function createBall(position) {
     physicsWorld.addRigidBody( body );
 
     obj.scene.userData.physicsBody = body;
-    scene.add( obj.scene );
+    //scene.add( obj.scene );
     rigidBodies.push(obj.scene);
 
     },

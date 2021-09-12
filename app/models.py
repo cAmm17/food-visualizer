@@ -64,18 +64,22 @@ def saveNewPortion(title, notes, selected_foods):
     p.user_id = User.query.filter_by(username=current_user.username).first().id
     db.session.add(p)
     for food in selected_foods:
-        f = FoodsInPortions()
-        f.food_id = Food.query.filter_by(food_name=food).first().id
-        f.portion_id = p.id
-        f.amount = selected_foods[food]
-        db.session.add(f)
+        if food != "All":
+            f = FoodsInPortions()
+            underscore_food = food.replace(" ", "_")
+            f.food_id = Food.query.filter_by(food_name=underscore_food).first().id
+            f.portion_id = p.id
+            f.amount = selected_foods[food]
+            db.session.add(f)
     db.session.commit()
+    return
 
 
 def loadUsersPortions():
     if current_user.is_authenticated:
         all_user_portions = {}
         user_portions = Portion.query.filter_by(user_id=current_user.id).all()
+        print(current_user.id)
         if user_portions is not None:
             for port in user_portions:
                 all_user_portions[port.id] = loadPortion(port.id)
@@ -87,7 +91,7 @@ def loadUsersPortions():
 
 def loadPortion(p_id):
     portion = {'foods': loadPortionFoods(p_id)}
-    nutrition = processNutritionInfo('All', portion["foods"])
+    nutrition = processNutritionInfo('All', portion['foods'])
     for key in nutrition:
         if key != 'name':
             portion[key] = nutrition[key]
@@ -98,8 +102,8 @@ def loadPortionFoods(p_id):
     foods_in_portion = {}
     temp_foods = FoodsInPortions.query.filter_by(portion_id=p_id).all()
     for food in temp_foods:
-        food_name = Food.query.filter_by(id=food.food_id).first()
-        foods_in_portion[food_name] = food.amount
+        f = Food.query.filter_by(id=food.food_id).first()
+        foods_in_portion[f.food_name] = food.amount
     return foods_in_portion
 
 

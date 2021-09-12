@@ -15,18 +15,18 @@
     <ul>
         {% for portion in portions %}
         <div class="portion_nutritional_info">
-            <h4>portion.title</h4>
-            <h5>portion.timestamp</h5>
-            <p>portion.notes</p>
+            <h4>{{ portions[portion]['title'] }}</h4>
+            <h5>{{ portions[portion]['timestamp'] }}</h5>
+            <p>{{ portions[portion]['notes'] }}</p>
         </div>
         <div class="foods_in_portion">
             <ul>
-                {% for food in portion.foods %}
+                {% for food in portions[portion]['foods'] %}
                     <li>
-                        food
+                        Food Name: {{ food.replace("_", " ") }}
                     </li>
                     <li>
-                        food['amount']
+                        Amount: {{ portions[portion]['foods'][food] }}
                     </li>
                 {% endfor %}
             </ul>
@@ -37,7 +37,7 @@
         Calories:
       </span>
                 <span>
-         portion['calories']
+         {{ portions[portion]['calories'] }}
       </span>
             </div>
             <div>
@@ -45,7 +45,7 @@
         Carbohydrates:
       </span>
                 <span>
-         portion['carbohydrates']g
+         {{ portions[portion]['carbohydrates'] }}g
       </span>
             </div>
             <div>
@@ -53,15 +53,15 @@
         Protein:
       </span>
                 <span>
-         portion['protein']g
+         {{ portions[portion]['protein'] }}g
       </span>
             </div>
             <div>
       <span>
-        Fat
+        Fat:
       </span>
                 <span>
-         portion['fat']g
+         {{ portions[portion]['fat'] }}g
       </span>
             </div>
         </div>
