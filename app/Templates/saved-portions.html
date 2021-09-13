@@ -15,7 +15,7 @@
     <ul>
         {% for portion in portions %}
         <div class="portion_nutritional_info">
-            <h4>{{ portions[portion]['title'] }}</h4>
+            <h4><a href="{{ url_for('load_saved_portion', portion_id=portion) }}">{{ portions[portion]['title'] }}</a></h4>
             <h5>{{ portions[portion]['timestamp'] }}</h5>
             <p>{{ portions[portion]['notes'] }}</p>
         </div>

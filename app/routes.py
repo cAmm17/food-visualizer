@@ -11,13 +11,14 @@ from .forms import *
 def index():
     foods = Food.query.all()
     available_foods = {food.food_name.replace("_", " ") for food in foods}
-    portion_form = PortionForm()
+    init_foods = {}
     if current_user.is_authenticated:
         usernm = current_user.username
     else:
         usernm = ""
-    return render_template('index.html', available_foods=available_foods, initial_foods="",
-                           logged_in=current_user.is_authenticated, username=usernm)
+    return render_template('index.html', available_foods=available_foods,
+                           initial_foods=init_foods, logged_in=current_user.is_authenticated,
+                           username=usernm)
 
 
 @app.route('/addFood', methods=['POST'])
@@ -95,3 +96,17 @@ def saved_portions():
         return render_template('saved-portions.html', portions=cur_user_portions, username=usernm)
     flash('You must be logged in to access this page')
     return redirect(url_for('login'))
+
+
+@app.route('/saved_portions/<int:portion_id>')
+def load_saved_portion(portion_id):
+    init_foods = loadPortionFoods(portion_id)
+    foods = Food.query.all()
+    available_foods = {food.food_name.replace("_", " ") for food in foods}
+    if current_user.is_authenticated:
+        usernm = current_user.username
+    else:
+        usernm = ""
+    return render_template('index.html', available_foods=available_foods,
+                           initial_foods=init_foods, logged_in=current_user.is_authenticated,
+                           username=usernm)

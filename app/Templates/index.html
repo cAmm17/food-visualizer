@@ -18,7 +18,7 @@
      tmpTrans, blockObj, modelPath, modelRadius, curFood;
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    let selectedFoodsLst = {{ initialFoods }};
+    let selectedFoodsLst = {};
     selectedFoodsLst["All"] = 0;
 
 
@@ -29,8 +29,8 @@
                 setupPhysicsWorld();
 
                 setupGraphics();
-                createBlock();
-                //createBall({x: 0, y: 20, z: 0});
+                createEnvironment();
+                setUpFoods();
                 setupEventHandlers();
 
                 renderFrame();
@@ -128,7 +128,7 @@
         const intersects = raycaster.intersectObjects( scene.children, true );
         const intersect = intersects[0];
         if (!(typeof intersect==='undefined')) {
-          createBall(intersect.point);
+          createFood(intersect.point);
         }
 
 
@@ -153,7 +153,7 @@
       }
     }
 
-    function createBlock(){
+    function createEnvironment(){
 
 
     let pos = {x: 0, y: 0, z: 0};
@@ -195,8 +195,25 @@
     physicsWorld.addRigidBody( body );
 }
 
+function setUpFoods(){
+  let temp_dict = {{initial_foods | safe}};
+  if (temp_dict.length() > 1) {
+    selectedFoodsLst = temp_dict;
+    let posX, posY, posZ;
+    for (let food in selectedFoodsLst) {
+        getModelPath(food);
+        for (let i = 0; i < selectedFoodsLst[food]; i++) {
+          posX = Math.floor(Math.random() * 30);
+          posY = Math.floor(Math.random() * 30);
+          posZ = 10;
+          createFood({x: posX, y: posY, z: posZ});
+        }
+      }
+    selectedFoodsLst['All'] = 0;
+  }
+}
 
-function createBall(position) {
+function createFood(position) {
     /*if (firstModel) {
        modelRadius = 3;
        modelPath = "{{ url_for('static', filename='models/whole_banana.glb') }}";
@@ -294,6 +311,19 @@ function updatePhysics( deltaTime ){
                 food: $(sourceElem).text()
             }).done(function(response) {
                 curFood = $(sourceElem).text();
+                let temp = '/static/';
+                modelPath = temp.concat(response['newModelPath']);
+                modelRadius = parseInt(response['newCollisionRadius']);
+            }).fail(function() {
+                console.log("ERROR :: failed to select food." );
+            })
+}
+
+function getModelPath(foodName) {
+  $.post('/addFood', {
+                food: foodName
+            }).done(function(response) {
+                curFood = foodName;
                 let temp = '/static/';
                 modelPath = temp.concat(response['newModelPath']);
                 modelRadius = parseInt(response['newCollisionRadius']);
