@@ -20,9 +20,12 @@
     const mouse = new THREE.Vector2();
     let selectedFoodsLst = {};
     selectedFoodsLst["All"] = 0;
+    let curSelectedFoodNutrition = "";
 
+    document.addEventListener("DOMContentLoaded", function(event){
+        Ammo().then( start )
+    });
 
-    Ammo().then( start )
 
     function start(){
                 tmpTrans = new Ammo.btTransform();
@@ -196,42 +199,34 @@
 }
 
 function setUpFoods(){
-  let temp_dict = {{initial_foods | safe}};
-  if (temp_dict.length() > 1) {
-    selectedFoodsLst = temp_dict;
+  let foodInfo = {{initial_foods | safe}};
+  if (Object.keys(foodInfo).length > 0) {
     let posX, posY, posZ;
-    for (let food in selectedFoodsLst) {
-        getModelPath(food);
-        for (let i = 0; i < selectedFoodsLst[food]; i++) {
-          posX = Math.floor(Math.random() * 30);
-          posY = Math.floor(Math.random() * 30);
-          posZ = 10;
+    for (let food in foodInfo) {
+        curFood = food;
+        let temp = '/static/';
+        modelPath = temp.concat(foodInfo[food]['modelPath']);
+        modelRadius = foodInfo[food]['collisionRadius'];
+        for (let i = 0; i < foodInfo[food]['amount']; i++) {
+          curFood = food;
+          posX = Math.floor(Math.random() * 10);
+          posY = 10;
+          posZ = Math.floor(Math.random() * 10);
           createFood({x: posX, y: posY, z: posZ});
         }
       }
-    selectedFoodsLst['All'] = 0;
   }
 }
 
 function createFood(position) {
-    /*if (firstModel) {
-       modelRadius = 3;
-       modelPath = "{{ url_for('static', filename='models/whole_banana.glb') }}";
-       firstModel = false;
-       curFood = "Whole_Banana";
-    }*/
     let pos = position;
     let radius = modelRadius;
     let quat = {x: 0, y: 0, z: 0, w: 1};
     let mass = 100;
 
     let newMesh;
-    //threeJS Section
-     const loader = new THREE.GLTFLoader();
 
-     loader.load( modelPath, function ( obj ) {
-
-      if (!(curFood in selectedFoodsLst)) {
+    if (!(curFood in selectedFoodsLst)) {
         selectedFoodsLst[curFood] = 1;
         updateList();
       }
@@ -239,6 +234,13 @@ function createFood(position) {
         selectedFoodsLst[curFood] += 1;
       }
 
+    //threeJS Section
+     const loader = new THREE.GLTFLoader();
+
+     loader.load( modelPath, function ( obj ) {
+
+
+      obj.name = curFood;
 	  obj.scene.position.set(pos.x, pos.y, pos.z);
 
       obj.castShadow = true;
@@ -301,6 +303,26 @@ function updatePhysics( deltaTime ){
 
 
 }
+/*
+function removeFoods() {
+  if(curSelectedFoodNutrition in selectedFoods) {
+    let indicesToRemove = []
+    for (let i = 0; i < scene.children.length; i++) {
+      if (scene.children[i].name == curSelectedFoodNutrition) {
+        indicesToRemove.push(i);
+      }
+    }
+    for (let i = 0; i < indicesToRemove.length; i++) {
+        physicsWorld.removeRigidBoy(scene.children[indicesToRemove[i] - i].scene.userData.physicsBody);
+        scene.remove(scene.children[indicesToRemove[i] - i]);
+    }
+    delete selectedFoods[curSelectedFoodNutrition];
+    curSelectedFoodNutrition = "";
+    updateList();
+    }
+  }
+}
+*/
 
 
 </script>
@@ -308,22 +330,9 @@ function updatePhysics( deltaTime ){
 
   function addFood(sourceElem) {
   $.post('/addFood', {
-                food: $(sourceElem).text()
+                food: $(sourceElem).text().trim().replace(" ", "_")
             }).done(function(response) {
-                curFood = $(sourceElem).text();
-                let temp = '/static/';
-                modelPath = temp.concat(response['newModelPath']);
-                modelRadius = parseInt(response['newCollisionRadius']);
-            }).fail(function() {
-                console.log("ERROR :: failed to select food." );
-            })
-}
-
-function getModelPath(foodName) {
-  $.post('/addFood', {
-                food: foodName
-            }).done(function(response) {
-                curFood = foodName;
+                curFood = $(sourceElem).text().trim().replace(" ", "_");
                 let temp = '/static/';
                 modelPath = temp.concat(response['newModelPath']);
                 modelRadius = parseInt(response['newCollisionRadius']);
@@ -334,9 +343,10 @@ function getModelPath(foodName) {
 
 function selectAddedFood(sourceElem) {
   $.post('/selectAddedFood', {
-        food: sourceElem.textContent,
+        food: sourceElem.textContent.trim().replace(" ", "_"),
         allSelected: JSON.stringify(selectedFoodsLst)
         }).done(function(response) {
+            curSelectedFoodNutrition = sourceElem.textContent.trim().replace(" ", "_");
             updateSelectedFoodNutrition(response['name'], response['calories'],
             response['carbohydrates'], response['protein'], response['fat'])
         }).fail(function() {
@@ -360,7 +370,7 @@ function savePortion() {
 
 
   <div id="add_food_panel">
-    {% for food in available_foods %}<ul id="{{ food.replace(' ', '_') }}"><a href="javascript:addFood('#{{ food.replace(' ', '_') }}');">{{ food }}</a></ul>{% endfor %}
+    {% for food in available_foods %}<ul id="{{ food}}"><a href="javascript:addFood('#{{ food }}');">{{ food.replace("_", " ") }}</a></ul>{% endfor %}
   </div>
 
 
@@ -373,6 +383,8 @@ function savePortion() {
   <div id="nutrition_panel">
 
   </div>
+
+  <button id="remove_food_button" onClick="removeFoods();">Remove Currently Selected Food(s)</button>
 
   {% if logged_in %}
   <label for="portion_title">Portion Title</label>
@@ -394,7 +406,7 @@ function savePortion() {
 
 <script type="text/babel">
 function ListItem(props) {
-  return <li onClick={(e) => selectAddedFood(e.target)}> {props.value}</li>;
+  return <li onClick={(e) => selectAddedFood(e.target)}> {props.value.replace("_", " ")}</li>;
 }
 
 function SelectedFoodList(props) {
@@ -425,7 +437,7 @@ function NutritionPanel(props) {
         Name:
       </span>
       <span>
-        {props.name}
+        {props.name.replace("_", " ")}
       </span>
     </div>
     <div>

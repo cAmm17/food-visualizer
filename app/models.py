@@ -16,7 +16,6 @@ def processNutritionInfo(foodName, selected_amounts):
                 # db call here
                 if food != 'All':
                     amount = selected_amounts[food]
-                    food = food.replace(" ", "_")
                     f = Food.query.filter_by(food_name=food).first_or_404()
                     all_foods['calories'] += f.calories * amount
                     all_foods['fat'] += f.fat * amount
@@ -28,7 +27,7 @@ def processNutritionInfo(foodName, selected_amounts):
                             'carbohydrates': str(all_foods['carbohydrates']),
                             'protein': str(all_foods['protein'])}
         else:
-            amount = selected_amounts[foodName.replace("_", " ")]
+            amount = selected_amounts[foodName]
             f = Food.query.filter_by(food_name=foodName).first_or_404()
             total_fat = f.fat * amount
             total_cals = f.calories * amount

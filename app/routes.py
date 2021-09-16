@@ -10,7 +10,7 @@ from .forms import *
 @app.route('/index')
 def index():
     foods = Food.query.all()
-    available_foods = {food.food_name.replace("_", " ") for food in foods}
+    available_foods = {food.food_name for food in foods}
     init_foods = {}
     if current_user.is_authenticated:
         usernm = current_user.username
@@ -102,11 +102,15 @@ def saved_portions():
 def load_saved_portion(portion_id):
     init_foods = loadPortionFoods(portion_id)
     foods = Food.query.all()
-    available_foods = {food.food_name.replace("_", " ") for food in foods}
+    available_foods = {food.food_name for food in foods}
     if current_user.is_authenticated:
         usernm = current_user.username
     else:
         usernm = ""
+    for food in init_foods:
+        models = addFoodModel(food)
+        init_foods[food] = {'amount': init_foods[food], 'modelPath': models['newModelPath'],
+                            'collisionRadius': models['newCollisionRadius']}
     return render_template('index.html', available_foods=available_foods,
                            initial_foods=init_foods, logged_in=current_user.is_authenticated,
                            username=usernm)
