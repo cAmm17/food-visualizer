@@ -240,12 +240,12 @@ function createFood(position) {
      loader.load( modelPath, function ( obj ) {
 
 
-      obj.name = curFood;
 	  obj.scene.position.set(pos.x, pos.y, pos.z);
 
       obj.castShadow = true;
       obj.scene.receiveShadow = true;
 
+      obj.scene.name = curFood;
       scene.add( obj.scene );
 
 
@@ -303,9 +303,9 @@ function updatePhysics( deltaTime ){
 
 
 }
-/*
+
 function removeFoods() {
-  if(curSelectedFoodNutrition in selectedFoods) {
+  if(curSelectedFoodNutrition in selectedFoodsLst) {
     let indicesToRemove = []
     for (let i = 0; i < scene.children.length; i++) {
       if (scene.children[i].name == curSelectedFoodNutrition) {
@@ -313,16 +313,15 @@ function removeFoods() {
       }
     }
     for (let i = 0; i < indicesToRemove.length; i++) {
-        physicsWorld.removeRigidBoy(scene.children[indicesToRemove[i] - i].scene.userData.physicsBody);
+        physicsWorld.removeRigidBody(scene.children[indicesToRemove[i] - i].userData.physicsBody);
         scene.remove(scene.children[indicesToRemove[i] - i]);
     }
-    delete selectedFoods[curSelectedFoodNutrition];
+    delete selectedFoodsLst[curSelectedFoodNutrition];
     curSelectedFoodNutrition = "";
     updateList();
-    }
   }
 }
-*/
+
 
 
 </script>
