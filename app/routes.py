@@ -1,3 +1,10 @@
+"""
+Author: Courtney Amm
+File Description: This file holds all routing functions used to interface between
+the client side and the backend server
+
+"""
+
 from flask import render_template, request, redirect, flash, url_for
 from app import app, db
 from flask_login import current_user, login_user, logout_user

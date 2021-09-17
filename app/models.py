@@ -1,3 +1,10 @@
+"""
+
+Author: Courtney Amm
+File Description: This file is used to load in
+
+"""
+
 from flask import jsonify, request
 import logging
 from datetime import datetime
@@ -75,6 +82,7 @@ def saveNewPortion(title, notes, selected_foods):
 
 
 def loadUsersPortions():
+    """Loads all of a user's saved portions from the database and stores them in a dictionary"""
     if current_user.is_authenticated:
         all_user_portions = {}
         user_portions = Portion.query.filter_by(user_id=current_user.id).all()
@@ -89,6 +97,8 @@ def loadUsersPortions():
 
 
 def loadPortion(p_id):
+    """Helper fundtion for loadUserPortions. Loads in the foods and nutritional info for an
+    individual portion"""
     portion = {'foods': loadPortionFoods(p_id)}
     nutrition = processNutritionInfo('All', portion['foods'])
     for key in nutrition:
@@ -98,6 +108,7 @@ def loadPortion(p_id):
 
 
 def loadPortionFoods(p_id):
+    """Returns a list of foods in the given portion. Helper function for loadPortion()"""
     foods_in_portion = {}
     temp_foods = FoodsInPortions.query.filter_by(portion_id=p_id).all()
     for food in temp_foods:
