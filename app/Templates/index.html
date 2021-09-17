@@ -148,7 +148,7 @@
         const intersects = raycaster.intersectObjects( scene.children, true );
         const intersect = intersects[0];
         if (!(typeof intersect==='undefined') && intersect.object.name != "floor") {
-          physicsWorld.removeRigidBoy(intersect.scene.userData.physicsBody);
+          physicsWorld.removeRigidBody(intersect.userData.physicsBody);
           scene.remove(intersect);
           intersect.dispose();
 
@@ -313,7 +313,13 @@ function removeFoods() {
       }
     }
     for (let i = 0; i < indicesToRemove.length; i++) {
-        physicsWorld.removeRigidBody(scene.children[indicesToRemove[i] - i].userData.physicsBody);
+        let tempRB = scene.children[indicesToRemove[i] - i].userData.physicsBody;
+        let index = -1;
+        physicsWorld.removeRigidBody(tempRB);
+        for (let j = 0; j < rigidBodies.length; j++) {
+          if (rigidBodies[j].userData.physicsBody.a == tempRB.a) index = j;
+        }
+        if (index > -1) rigidBodies.splice(index, 1);
         scene.remove(scene.children[indicesToRemove[i] - i]);
     }
     delete selectedFoodsLst[curSelectedFoodNutrition];
@@ -368,12 +374,20 @@ function savePortion() {
 <div id="menu">
 
 
+  <p id="add_food_panel_label">Select a food to place in the scene.</p>
   <div id="add_food_panel">
-    {% for food in available_foods %}<ul id="{{ food}}"><a href="javascript:addFood('#{{ food }}');">{{ food.replace("_", " ") }}</a></ul>{% endfor %}
+
+    <ul>
+      {% for food in available_foods %}<li id="{{ food}}" class="food_item"><a href="javascript:addFood('#{{ food }}');">{{ food.replace("_", " ") }}</a></li>{% endfor %}
+    </ul>
+
   </div>
 
 
+  <p id="view_food_panel_label">A list of all foods in the scene. Click on one to view it's
+    nutritional info</p>
   <div id="view_food_panel">
+
     <div id="selectedFoodsPanel">
 
     </div>
@@ -405,7 +419,7 @@ function savePortion() {
 
 <script type="text/babel">
 function ListItem(props) {
-  return <li onClick={(e) => selectAddedFood(e.target)}> {props.value.replace("_", " ")}</li>;
+  return <li onClick={(e) => selectAddedFood(e.target)} class="food_item"> {props.value.replace("_", " ")}</li>;
 }
 
 function SelectedFoodList(props) {
@@ -432,42 +446,42 @@ function NutritionPanel(props) {
   return (
   <div>
     <div>
-      <span>
+      <span class="nutrition_panel">
         Name:
       </span>
-      <span>
+      <span class="nutrition_panel">
         {props.name.replace("_", " ")}
       </span>
     </div>
     <div>
-      <span>
+      <span class="nutrition_panel">
         Calories:
       </span>
-      <span>
+      <span class="nutrition_panel">
         {props.calories}
       </span>
     </div>
     <div>
-      <span>
+      <span class="nutrition_panel">
         Carbohydrates:
       </span>
-      <span>
+      <span class="nutrition_panel">
         {props.carbohydrates}g
       </span>
     </div>
-    <div>
+    <div class="nutrition_panel">
       <span>
         Protein:
       </span>
-      <span>
+      <span class="nutrition_panel">
         {props.protein}g
       </span>
     </div>
     <div>
-      <span>
+      <span class="nutrition_panel">
         Fat
       </span>
-      <span>
+      <span class="nutrition_panel">
         {props.fat}g
       </span>
     </div>
