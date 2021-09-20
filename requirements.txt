@@ -10,3 +10,4 @@ alembic==1.6.5
 Werkzeug==1.0.1
 gunicorn
 psycopg2-binary
+email-validator
