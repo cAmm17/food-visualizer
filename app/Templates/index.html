@@ -219,63 +219,66 @@ function setUpFoods(){
 }
 
 function createFood(position) {
-    let pos = position;
-    let radius = modelRadius;
-    let quat = {x: 0, y: 0, z: 0, w: 1};
-    let mass = 100;
+    if (!(curFood === undefined)){
+      let pos = position;
+      let radius = modelRadius;
+      let quat = {x: 0, y: 0, z: 0, w: 1};
+      let mass = 100;
 
-    let newMesh;
+      let newMesh;
 
-    if (!(curFood in selectedFoodsLst)) {
-        selectedFoodsLst[curFood] = 1;
-        updateList();
-      }
-      else {
-        selectedFoodsLst[curFood] += 1;
-      }
+      if (!(curFood in selectedFoodsLst)) {
+          selectedFoodsLst[curFood] = 1;
+          updateList();
+        }
+        else {
+          selectedFoodsLst[curFood] += 1;
+        }
 
-    //threeJS Section
-     const loader = new THREE.GLTFLoader();
+      //threeJS Section
+       const loader = new THREE.GLTFLoader();
 
-     loader.load( modelPath, function ( obj ) {
-
-
-	  obj.scene.position.set(pos.x, pos.y, pos.z);
-
-      obj.castShadow = true;
-      obj.scene.receiveShadow = true;
-
-      obj.scene.name = curFood;
-      scene.add( obj.scene );
+       loader.load( modelPath, function ( obj ) {
 
 
-    //Ammojs Section
-    let transform = new Ammo.btTransform();
-    transform.setIdentity();
-    transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
-    transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
-    let motionState = new Ammo.btDefaultMotionState( transform );
+        obj.scene.position.set(pos.x, pos.y, pos.z);
 
-    let colShape = new Ammo.btSphereShape( radius );
-    colShape.setMargin( 0.05 );
+        obj.castShadow = true;
+        obj.scene.receiveShadow = true;
 
-    let localInertia = new Ammo.btVector3( 0, 0, 0 );
-    colShape.calculateLocalInertia( mass, localInertia );
-
-    let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
-    let body = new Ammo.btRigidBody( rbInfo );
+        obj.scene.name = curFood;
+        scene.add( obj.scene );
 
 
-    physicsWorld.addRigidBody( body );
+      //Ammojs Section
+      let transform = new Ammo.btTransform();
+      transform.setIdentity();
+      transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+      transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+      let motionState = new Ammo.btDefaultMotionState( transform );
 
-    obj.scene.userData.physicsBody = body;
-    //scene.add( obj.scene );
-    rigidBodies.push(obj.scene);
+      let colShape = new Ammo.btSphereShape( radius );
+      colShape.setMargin( 0.05 );
 
-    },
-    undefined, function ( error ) {
-	   console.error( error );
-} );
+      let localInertia = new Ammo.btVector3( 0, 0, 0 );
+      colShape.calculateLocalInertia( mass, localInertia );
+
+      let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+      let body = new Ammo.btRigidBody( rbInfo );
+
+
+      physicsWorld.addRigidBody( body );
+
+      obj.scene.userData.physicsBody = body;
+      //scene.add( obj.scene );
+      rigidBodies.push(obj.scene);
+
+      },
+      undefined, function ( error ) {
+         console.error( error );
+      } );
+
+  }
 
 }
 
@@ -419,7 +422,7 @@ function savePortion() {
 
 <script type="text/babel">
 function ListItem(props) {
-  return <li onClick={(e) => selectAddedFood(e.target)} class="food_item"> {props.value.replace("_", " ")}</li>;
+  return <li onClick={(e) => selectAddedFood(e.target)} className="food_item"> {props.value.replace("_", " ")}</li>;
 }
 
 function SelectedFoodList(props) {
@@ -446,43 +449,28 @@ function NutritionPanel(props) {
   return (
   <div>
     <div>
-      <span class="nutrition_panel">
-        Name:
-      </span>
-      <span class="nutrition_panel">
-        {props.name.replace("_", " ")}
+      <span className="nutrition_panel">
+        Name: {props.name.replace("_", " ")}
       </span>
     </div>
     <div>
-      <span class="nutrition_panel">
-        Calories:
-      </span>
-      <span class="nutrition_panel">
-        {props.calories}
+      <span className="nutrition_panel">
+        Calories: {props.calories}
       </span>
     </div>
     <div>
-      <span class="nutrition_panel">
-        Carbohydrates:
-      </span>
-      <span class="nutrition_panel">
-        {props.carbohydrates}g
+      <span className="nutrition_panel">
+        Carbohydrates: {props.carbohydrates}g
       </span>
     </div>
-    <div class="nutrition_panel">
+    <div className="nutrition_panel">
       <span>
-        Protein:
-      </span>
-      <span class="nutrition_panel">
-        {props.protein}g
+        Protein: {props.protein}g
       </span>
     </div>
     <div>
-      <span class="nutrition_panel">
-        Fat
-      </span>
-      <span class="nutrition_panel">
-        {props.fat}g
+      <span className="nutrition_panel">
+        Fat: {props.fat}g
       </span>
     </div>
   </div>

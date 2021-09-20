@@ -11,22 +11,18 @@
   position: absolute;
   top: 10%;
   left: 2%;
-  background-color: antiquewhite;
-  color: black;
-  border: solid;
-  border-color: darkblue;
+  background-color: #14192B;
+  color: white;
   z-index: 10;
   padding: 0.1em, .5em, .5em, .1em;
 }
 
 #view_food_panel {
   height: 7em;
-  color: darkblue;
+  color: white;
   overflow:hidden;
   overflow-y:scroll;
-  border-color: darkblue;
-  border: solid;
-  background-color: antiquewhite;
+  background-color: #14192B;
 }
 
 
@@ -42,17 +38,13 @@
     overflow:hidden;
     overflow-y:scroll;
     height: 7em;
-    background-color:antiquewhite;
-    color: darkblue;
-    border: solid;
-    border-color: darkblue;
+    background-color:#14192B;
+    color: white;
 }
 
 .food_item {
-    background-color:antiquewhite;
-    color: darkblue;
-    border: solid;
-    border-color: darkblue;
+    background-color:#14192B;
+    color: white;
     text-align: left;
     padding-left: 0;
 }
@@ -62,10 +54,8 @@
 }
 
 #nutrition_panel {
-    background-color:antiquewhite;
-    color: darkblue;
-    border: solid;
-    border-color: darkblue;
+    background-color:#14192B;
+    color: white;
     text-align: left;
 }
 
@@ -74,17 +64,18 @@ ul {
  }
 
 #add_food_panel_label {
-    border: solid;
-    border-color: darkblue;
+
     border-width: .01em;
     font-weight: bold;
     padding:.1em;
 }
 
 #view_food_panel_label {
-    border: solid;
-    border-color: darkblue;
     border-width: .01em;
     font-weight: bold;
     padding:.1em;
+}
+
+a:link {
+  color:white;
 }
