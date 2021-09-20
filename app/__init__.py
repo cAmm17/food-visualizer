@@ -14,11 +14,6 @@ mig = Migrate(app, db)
 login = LoginManager(app)
 
 
-@app.after_request
-def add_header(response):
-    if 'Cache-Control' not in response.headers:
-        response.headers["Cache-Control"] = "no-cache, no-store"  # HTTP 1.1.
-    return response
 
 
 from app import routes

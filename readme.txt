@@ -11,3 +11,12 @@ models. This project is a work in progress. A todolist can be found below.
 - Add functionality to delete saved portions
 - Add more foods and food 3d models
 
+# This project uses the following libraries and frameworks:
+Javascript:
+    - Three.js
+    - Ammo.js
+    - React
+    - Jquery
+
+Python:
+    -Flask

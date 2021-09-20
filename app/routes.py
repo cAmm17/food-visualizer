@@ -121,3 +121,16 @@ def load_saved_portion(portion_id):
     return render_template('index.html', available_foods=available_foods,
                            initial_foods=init_foods, logged_in=current_user.is_authenticated,
                            username=usernm)
+
+
+#################################Error Handlers#################################################333
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
