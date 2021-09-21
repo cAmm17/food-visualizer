@@ -57,7 +57,7 @@ def save_portion():
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     """
-    This route leads to the login page
+    This route leads to the login page.
     """
     if current_user.is_authenticated:
         return redirect(url_for('index'))
