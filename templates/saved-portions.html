@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div>
+    <h1>
+        Hello {{ username }}!
+    </h1>
+    <h3>
+        Here are your saved portions:
+    </h3>
+</div>
+
+<div>
+    <ul>
+        {% for portion in portions %}
+        <div class="portion_nutritional_info">
+            <h4><a href="{{ url_for('load_saved_portion', portion_id=portion) }}">{{ portions[portion]['title'] }}</a></h4>
+            <h5>{{ portions[portion]['timestamp'] }}</h5>
+            <p>{{ portions[portion]['notes'] }}</p>
+        </div>
+        <div class="foods_in_portion">
+            <ul>
+                {% for food in portions[portion]['foods'] %}
+                    <li>
+                        Food Name: {{ food.replace("_", " ") }}
+                    </li>
+                    <li>
+                        Amount: {{ portions[portion]['foods'][food] }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div>
+            <div>
+      <span>
+        Calories:
+      </span>
+                <span>
+         {{ portions[portion]['calories'] }}
+      </span>
+            </div>
+            <div>
+      <span>
+        Carbohydrates:
+      </span>
+                <span>
+         {{ portions[portion]['carbohydrates'] }}g
+      </span>
+            </div>
+            <div>
+      <span>
+        Protein:
+      </span>
+                <span>
+         {{ portions[portion]['protein'] }}g
+      </span>
+            </div>
+            <div>
+      <span>
+        Fat:
+      </span>
+                <span>
+         {{ portions[portion]['fat'] }}g
+      </span>
+            </div>
+        </div>
+        {% endfor %}
+    </ul>
+</div>
+
+
+
+{% endblock %}
