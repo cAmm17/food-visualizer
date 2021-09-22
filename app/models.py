@@ -1,15 +1,19 @@
 """
-
 Author: Courtney Amm
-File Description: This file is used to load in
+File: models.py
+
+This file contains all of the database model classes used by SQLAlchemy to store rows from
+the database as objects.
 
 """
 
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from app import app, db, login
+from app import db, login
+
 # Database Models ####################################################################
+
 
 class Food(db.Model):
     """
