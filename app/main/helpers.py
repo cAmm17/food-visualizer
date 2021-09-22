@@ -1,15 +1,19 @@
-from flask import jsonify, request
-import logging
-from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin, current_user
-from app import app, db, login
+"""
+Name: Courtney Amm
+File: main/helpers.py
+
+This file contains the helper functions for the main application functionality's routes.
+
+"""
+from flask_login import current_user
 from models import *
 
 
 def processNutritionInfo(foodName, selected_amounts):
-    """Takes the inputed name and returns the nutritional info. If the info is all, then it
-    adds up the nutritional info of all selected foods."""
+    """
+    Takes the inputed name and returns the nutritional info. If the info is all, then it
+    adds up the nutritional info of all selected foods.
+    """
     try:
         if foodName == 'All':
             all_foods = {'calories': 0.0, 'fat': 0.0, 'carbohydrates': 0.0, 'protein': 0.0}
@@ -48,16 +52,20 @@ def processNutritionInfo(foodName, selected_amounts):
 
 
 def addFoodModel(foodName):
-    """Takes the selected food and returns it's model path and the collision radius for that
-    model. On the client side, the selected food is also added to a list of selected foods"""
+    """
+    Takes the selected food and returns it's model path and the collision radius for that
+    model. On the client side, the selected food is also added to a list of selected foods.
+    """
     f = Food.query.filter_by(food_name=foodName).first_or_404()
     return {'newModelPath': f.model_path,
             'newCollisionRadius': f.collision_radius}
 
 
 def saveNewPortion(title, notes, selected_foods):
-    """Takes the currently selected portions and saves it to the database for that user
-    to reopen later"""
+    """
+    Takes the currently selected portions and saves it to the database for that user
+    to reopen later.
+    """
     p = Portion()
     p.title = title
     p.notes = notes
@@ -76,7 +84,9 @@ def saveNewPortion(title, notes, selected_foods):
 
 
 def loadUsersPortions():
-    """Loads all of a user's saved portions from the database and stores them in a dictionary"""
+    """
+    Loads all of a user's saved portions from the database and stores them in a dictionary.
+    """
     if current_user.is_authenticated:
         all_user_portions = {}
         user_portions = Portion.query.filter_by(user_id=current_user.id).all()
@@ -91,8 +101,10 @@ def loadUsersPortions():
 
 
 def loadPortion(p_id):
-    """Helper fundtion for loadUserPortions. Loads in the foods and nutritional info for an
-    individual portion"""
+    """
+    Helper funtion for loadUserPortions. Loads in the foods and nutritional info for an
+    individual portion
+    """
     portion = {'foods': loadPortionFoods(p_id)}
     nutrition = processNutritionInfo('All', portion['foods'])
     for key in nutrition:
@@ -102,7 +114,9 @@ def loadPortion(p_id):
 
 
 def loadPortionFoods(p_id):
-    """Returns a list of foods in the given portion. Helper function for loadPortion()"""
+    """
+    Returns a list of foods in the given portion. Helper function for loadPortion()
+    """
     foods_in_portion = {}
     temp_foods = FoodsInPortions.query.filter_by(portion_id=p_id).all()
     for food in temp_foods:

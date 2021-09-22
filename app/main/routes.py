@@ -1,12 +1,18 @@
-from flask import render_template, request, redirect, flash, url_for
-from app import app, db
-from flask_login import current_user, login_user, logout_user
+"""
+Name: Courtney Amm
+File: main/routes.py
+
+This file contains the routes for the main functionality of the webapp.
+
+"""
+from flask import jsonify, render_template, request, redirect, flash, url_for
 import json
 from helpers import *
+from app.main import bp
 
 
-@app.route('/')
-@app.route('/index')
+@bp.route('/')
+@bp.route('/index')
 def index():
     foods = Food.query.all()
     available_foods = {food.food_name for food in foods}
@@ -20,14 +26,14 @@ def index():
                            username=usernm)
 
 
-@app.route('/addFood', methods=['POST'])
+@bp.route('/addFood', methods=['POST'])
 def addFood():
     stripped_food_name = request.form['food'].strip()
     stripped_food_name = stripped_food_name.replace(" ", "_")
     return jsonify(addFoodModel(stripped_food_name))
 
 
-@app.route('/selectAddedFood', methods=['POST'])
+@bp.route('/selectAddedFood', methods=['POST'])
 def selectAddedFood():
     stripped_food_name = request.form['food'].strip()
     stripped_food_name = stripped_food_name.replace(" ", "_")
@@ -35,7 +41,7 @@ def selectAddedFood():
     return jsonify(processNutritionInfo(stripped_food_name, processed_selected))
 
 
-@app.route('/save_portion', methods=['POST', 'GET'])
+@bp.route('/save_portion', methods=['POST', 'GET'])
 def save_portion():
     if current_user.is_authenticated:
         processed_selected = json.loads(request.form['allSelected'])
@@ -45,7 +51,7 @@ def save_portion():
     return
 
 
-@app.route('/saved_portions')
+@bp.route('/saved_portions')
 def saved_portions():
     if current_user.is_authenticated:
         cur_user_portions = loadUsersPortions()
@@ -55,7 +61,7 @@ def saved_portions():
     return redirect(url_for('login'))
 
 
-@app.route('/saved_portions/<int:portion_id>')
+@bp.route('/saved_portions/<int:portion_id>')
 def load_saved_portion(portion_id):
     init_foods = loadPortionFoods(portion_id)
     foods = Food.query.all()
