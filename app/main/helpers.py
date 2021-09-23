@@ -6,7 +6,8 @@ This file contains the helper functions for the main application functionality's
 
 """
 from flask_login import current_user
-from models import *
+from flask import current_app
+from ..models import *
 
 
 def processNutritionInfo(foodName, selected_amounts):
@@ -45,8 +46,8 @@ def processNutritionInfo(foodName, selected_amounts):
                     'protein': total_protein}
 
     except (KeyError):
-        app.logger.error('ERROR :: Could not find nutritional information for selected foods')
-        app.logger.error('Food Name: ' + foodName + " selected_amounts" + str(selected_amounts))
+        current_app.logger.error('ERROR :: Could not find nutritional information for selected foods')
+        current_app.logger.error('Food Name: ' + foodName + " selected_amounts" + str(selected_amounts))
         return {'name': 'Not Found', 'calories': '0.0', 'fat': '0.0',
                 'carbohydrates': '0.0', 'protein': '0.0'}
 

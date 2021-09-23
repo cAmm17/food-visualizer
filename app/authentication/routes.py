@@ -20,16 +20,16 @@ def login():
     info is correct, the user is logged in, otherwise an error is flashed.
     """
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
     log_form = LoginForm()
     if log_form.validate_on_submit():
         user = User.query.filter_by(username=log_form.username.data).first()
         if user is None or not user.check_password(log_form.password.data):
             flash("Username or Password incorrect")
-            return redirect(url_for('login'))
+            return redirect(url_for('authentication.login'))
         login_user(user, remember=log_form.remember_me.data)
         return redirect("/index")
-    return render_template('login.html', title="Sign in", form=log_form)
+    return render_template('authentication/login.html', title="Sign in", form=log_form)
 
 
 @bp.route('/logout')
@@ -38,7 +38,7 @@ def logout():
     The route logs out the current user.
     """
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('main.index'))
 
 
 @bp.route('/register', methods=['POST', 'GET'])
@@ -49,7 +49,7 @@ def register():
     once it is entered.
     """
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
     reg_form = RegistrationForm()
     if reg_form.validate_on_submit():
         user = User()
@@ -59,5 +59,5 @@ def register():
         db.session.add(user)
         db.session.commit()
         flash('You have successfully registered your new account.')
-        return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=reg_form)
+        return redirect(url_for('authentication.login'))
+    return render_template('authentication/register.html', title='Register', form=reg_form)

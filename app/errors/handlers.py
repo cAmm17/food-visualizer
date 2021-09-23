@@ -15,7 +15,7 @@ def not_found_error(error):
     """
     Renders a 404 error page to the user when a 404 error is encountered.
     """
-    return render_template('404.html'), 404
+    return render_template('errors/404.html'), 404
 
 
 @bp.app_errorhandler(500)
@@ -24,4 +24,4 @@ def internal_error(error):
     Renders a 500 error page to the user when a 500 error is encountered.
     """
     db.session.rollback()
-    return render_template('500.html'), 500
+    return render_template('errors/500.html'), 500

@@ -33,8 +33,7 @@ def create_app():
     app.register_blueprint(errors_bp)
     from app.authentication import bp as authentication_bp
     app.register_blueprint(authentication_bp, url_prefix='/authentication')
-
-
-    from app import routes
+    from app.main import bp as main_bp
+    app.register_blueprint(main_bp)
 
     return app
