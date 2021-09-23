@@ -1,0 +1,492 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"
+        integrity="sha512-yNJzAsg5JyP91u+sLHlUDULMBd3hmEiVkYeeN1cQBKaLZ7EyT6oH2u5THNIRM2Fu6VKcZJv+F/QAp1h/qzy9Ow=="
+        crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="{{ url_for('static', filename='js/ammo.js') }}"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="{{
+  url_for('static', filename='jquery.js') }}">\x3C/script>')
+</script>
+<script>
+    //variables
+    let firstModel, physicsWorld, clock, scene, camera, renderer, rigidBodies = [],
+     tmpTrans, blockObj, modelPath, modelRadius, curFood;
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let selectedFoodsLst = {};
+    selectedFoodsLst["All"] = 0;
+    let curSelectedFoodNutrition = "";
+
+    document.addEventListener("DOMContentLoaded", function(event){
+        Ammo().then( start )
+    });
+
+
+    function start(){
+                tmpTrans = new Ammo.btTransform();
+                setupPhysicsWorld();
+
+                setupGraphics();
+                createEnvironment();
+                setUpFoods();
+                setupEventHandlers();
+
+                renderFrame();
+            }
+            function setupPhysicsWorld() {
+                    let collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(),
+                    dispatcher              = new Ammo.btCollisionDispatcher(collisionConfiguration),
+                    overlappingPairCache    = new Ammo.btDbvtBroadphase(),
+                    solver                  = new Ammo.btSequentialImpulseConstraintSolver();
+
+                    physicsWorld           = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+                    physicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
+            }
+            function setupGraphics(){
+
+    //create clock for timing
+    clock = new THREE.Clock();
+
+    //create the scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xbfd1e5 );
+
+    //create camera
+    camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 5000 );
+    camera.position.set( 0, 30, 15 );
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+    //Add hemisphere light
+    let hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.1 );
+    hemiLight.color.setHSL( 0.6, 0.6, 0.6 );
+    hemiLight.groundColor.setHSL( 0.1, 1, 0.4 );
+    hemiLight.position.set( 0, 50, 0 );
+    scene.add( hemiLight );
+
+    //Add directional light
+    let dirLight = new THREE.DirectionalLight( 0xffffff , 1);
+    dirLight.color.setHSL( 0.1, 1, 0.95 );
+    dirLight.position.set( -1, 1.75, 1 );
+    dirLight.position.multiplyScalar( 100 );
+    scene.add( dirLight );
+
+    dirLight.castShadow = true;
+
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+
+    let d = 50;
+
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+
+    dirLight.shadow.camera.far = 13500;
+
+    //Setup the renderer
+    let threeCanvas = document.getElementById('threejsCanvas');
+    renderer = new THREE.WebGLRenderer( { antialias: true, canvas: threeCanvas} );
+    renderer.setClearColor( 0xbfd1e5 );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+
+    renderer.gammaInput = true;
+    renderer.gammaOutput = true;
+
+    renderer.shadowMap.enabled = true;
+
+    firstModel = true;
+
+    }
+
+    function renderFrame(){
+
+      let deltaTime = clock.getDelta();
+      updatePhysics( deltaTime );
+
+      raycaster.setFromCamera( mouse, camera );
+
+      renderer.render( scene, camera );
+
+      requestAnimationFrame( renderFrame );
+
+    }
+
+    function setupEventHandlers(){
+
+        window.addEventListener( 'click', handleClick, false);
+        window.addEventListener( 'mousemove', onMouseMove, false );
+        window.addEventListener( 'keypress', onKeyPress, false);
+
+    }
+
+    function handleClick(){
+        raycaster.setFromCamera( mouse, camera );
+        const intersects = raycaster.intersectObjects( scene.children, true );
+        const intersect = intersects[0];
+        if (!(typeof intersect==='undefined')) {
+          createFood(intersect.point);
+        }
+
+
+    }
+
+    function onMouseMove(event) {
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    }
+
+    function onKeyPress(event) {
+      if (event.code == "KeyD") {
+        raycaster.setFromCamera( mouse, camera );
+        const intersects = raycaster.intersectObjects( scene.children, true );
+        const intersect = intersects[0];
+        if (!(typeof intersect==='undefined') && intersect.object.name != "floor") {
+          physicsWorld.removeRigidBody(intersect.userData.physicsBody);
+          scene.remove(intersect);
+          intersect.dispose();
+
+        }
+      }
+    }
+
+    function createEnvironment(){
+
+
+    let pos = {x: 0, y: 0, z: 0};
+    let scale = {x: 200, y: 2, z: 200};
+    let quat = {x: 0, y: 0, z: 0, w: 1};
+    let mass = 0;
+
+    //threeJS Section
+    let blockPlane = new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshPhongMaterial({color: 0xa0afa4}));
+
+    blockPlane.position.set(pos.x, pos.y, pos.z);
+    blockPlane.scale.set(scale.x, scale.y, scale.z);
+    blockPlane.name = "floor";
+
+    blockPlane.castShadow = true;
+    blockPlane.receiveShadow = true;
+
+    blockObj = blockPlane;
+    scene.add(blockPlane);
+
+
+    //Ammojs Section
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+    transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+    let motionState = new Ammo.btDefaultMotionState( transform );
+
+    let colShape = new Ammo.btBoxShape( new Ammo.btVector3( scale.x * 0.5, scale.y * 0.5, scale.z * 0.5 ) );
+    colShape.setMargin( 0.05 );
+
+    let localInertia = new Ammo.btVector3( 0, 0, 0 );
+    colShape.calculateLocalInertia( mass, localInertia );
+
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+    let body = new Ammo.btRigidBody( rbInfo );
+
+
+    physicsWorld.addRigidBody( body );
+}
+
+function setUpFoods(){
+  let foodInfo = {{initial_foods | safe}};
+  if (Object.keys(foodInfo).length > 0) {
+    let posX, posY, posZ;
+    for (let food in foodInfo) {
+        curFood = food;
+        let temp = '/static/';
+        modelPath = temp.concat(foodInfo[food]['modelPath']);
+        modelRadius = foodInfo[food]['collisionRadius'];
+        for (let i = 0; i < foodInfo[food]['amount']; i++) {
+          curFood = food;
+          posX = Math.floor(Math.random() * 10);
+          posY = 10;
+          posZ = Math.floor(Math.random() * 10);
+          createFood({x: posX, y: posY, z: posZ});
+        }
+      }
+  }
+}
+
+function createFood(position) {
+    if (!(curFood === undefined)){
+      let pos = position;
+      let radius = modelRadius;
+      let quat = {x: 0, y: 0, z: 0, w: 1};
+      let mass = 100;
+
+      let newMesh;
+
+      if (!(curFood in selectedFoodsLst)) {
+          selectedFoodsLst[curFood] = 1;
+          updateList();
+        }
+        else {
+          selectedFoodsLst[curFood] += 1;
+        }
+
+      //threeJS Section
+       const loader = new THREE.GLTFLoader();
+
+       loader.load( modelPath, function ( obj ) {
+
+
+        obj.scene.position.set(pos.x, pos.y, pos.z);
+
+        obj.castShadow = true;
+        obj.scene.receiveShadow = true;
+
+        obj.scene.name = curFood;
+        scene.add( obj.scene );
+
+
+      //Ammojs Section
+      let transform = new Ammo.btTransform();
+      transform.setIdentity();
+      transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+      transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+      let motionState = new Ammo.btDefaultMotionState( transform );
+
+      let colShape = new Ammo.btSphereShape( radius );
+      colShape.setMargin( 0.05 );
+
+      let localInertia = new Ammo.btVector3( 0, 0, 0 );
+      colShape.calculateLocalInertia( mass, localInertia );
+
+      let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+      let body = new Ammo.btRigidBody( rbInfo );
+
+
+      physicsWorld.addRigidBody( body );
+
+      obj.scene.userData.physicsBody = body;
+      //scene.add( obj.scene );
+      rigidBodies.push(obj.scene);
+
+      },
+      undefined, function ( error ) {
+         console.error( error );
+      } );
+
+  }
+
+}
+
+
+function updatePhysics( deltaTime ){
+
+    // Step world
+    physicsWorld.stepSimulation( deltaTime, 10 );
+
+    // Update rigid bodies
+    for ( let i = 0; i < rigidBodies.length; i++ ) {
+        let objThree = rigidBodies[ i ];
+        let objAmmo = objThree.userData.physicsBody;
+        let ms = objAmmo.getMotionState();
+        if ( ms ) {
+
+            ms.getWorldTransform( tmpTrans );
+            let p = tmpTrans.getOrigin();
+            let q = tmpTrans.getRotation();
+            objThree.position.set( p.x(), p.y(), p.z() );
+            objThree.quaternion.set( q.x(), q.y(), q.z(), q.w() );
+
+        }
+    }
+
+
+}
+
+function removeFoods() {
+  if(curSelectedFoodNutrition in selectedFoodsLst) {
+    let indicesToRemove = []
+    for (let i = 0; i < scene.children.length; i++) {
+      if (scene.children[i].name == curSelectedFoodNutrition) {
+        indicesToRemove.push(i);
+      }
+    }
+    for (let i = 0; i < indicesToRemove.length; i++) {
+        let tempRB = scene.children[indicesToRemove[i] - i].userData.physicsBody;
+        let index = -1;
+        physicsWorld.removeRigidBody(tempRB);
+        for (let j = 0; j < rigidBodies.length; j++) {
+          if (rigidBodies[j].userData.physicsBody.a == tempRB.a) index = j;
+        }
+        if (index > -1) rigidBodies.splice(index, 1);
+        scene.remove(scene.children[indicesToRemove[i] - i]);
+    }
+    delete selectedFoodsLst[curSelectedFoodNutrition];
+    curSelectedFoodNutrition = "";
+    updateList();
+  }
+}
+
+
+
+</script>
+<script>
+
+  function addFood(sourceElem) {
+  $.post('/addFood', {
+                food: $(sourceElem).text().trim().replace(" ", "_")
+            }).done(function(response) {
+                curFood = $(sourceElem).text().trim().replace(" ", "_");
+                let temp = '/static/';
+                modelPath = temp.concat(response['newModelPath']);
+                modelRadius = parseInt(response['newCollisionRadius']);
+            }).fail(function() {
+                console.log("ERROR :: failed to select food." );
+            })
+}
+
+function selectAddedFood(sourceElem) {
+  $.post('/selectAddedFood', {
+        food: sourceElem.textContent.trim().replace(" ", "_"),
+        allSelected: JSON.stringify(selectedFoodsLst)
+        }).done(function(response) {
+            curSelectedFoodNutrition = sourceElem.textContent.trim().replace(" ", "_");
+            updateSelectedFoodNutrition(response['name'], response['calories'],
+            response['carbohydrates'], response['protein'], response['fat'])
+        }).fail(function() {
+           console.log("ERROR :: failed to retrieve food nutrition." );
+        })
+
+}
+function savePortion() {
+  $.post('/save_portion', {
+  allSelected: JSON.stringify(selectedFoodsLst),
+  portion_title: document.getElementById("portion_title").value,
+  portion_notes: document.getElementById("portion_notes").value
+  }).done(function(response) {
+  }).fail(function() {
+    console.log("ERROR :: failed to save portion." );
+  })
+}
+
+</script>
+<div id="menu">
+
+
+  <p id="add_food_panel_label">Select a food to place in the scene.</p>
+  <div id="add_food_panel">
+
+    <ul>
+      {% for food in available_foods %}<li id="{{ food}}" class="food_item"><a href="javascript:addFood('#{{ food }}');">{{ food.replace("_", " ") }}</a></li>{% endfor %}
+    </ul>
+
+  </div>
+
+
+  <p id="view_food_panel_label">A list of all foods in the scene. Click on one to view it's
+    nutritional info</p>
+  <div id="view_food_panel">
+
+    <div id="selectedFoodsPanel">
+
+    </div>
+  </div>
+
+  <div id="nutrition_panel">
+
+  </div>
+
+  <button id="remove_food_button" onClick="removeFoods();">Remove Currently Selected Food(s)</button>
+
+  {% if logged_in %}
+  <label for="portion_title">Portion Title</label>
+  <input type="text" id="portion_title">
+  <label for="portion_notes">Portion Notes</label>
+  <input type="text" id="portion_notes">
+  <button id="save_button" onclick="savePortion();">Save</button>
+  {% endif %}
+</div>
+
+<canvas width=100% height=90% id="threejsCanvas"></canvas>
+
+
+
+<!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+<script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+<script type="text/babel">
+function ListItem(props) {
+  return <li onClick={(e) => selectAddedFood(e.target)} className="food_item"> {props.value.replace("_", " ")}</li>;
+}
+
+function SelectedFoodList(props) {
+  const foods = Object.keys(props.selectedFoods);
+  const listItems = foods.map((food) =>
+    <ListItem key={food.toString()} value={food.toString()}  />
+  );
+  return (
+    <ul>
+        {listItems}
+    </ul>
+  );
+}
+
+
+function updateList() {
+  ReactDOM.render(
+    <SelectedFoodList selectedFoods={selectedFoodsLst} />,
+    document.getElementById('selectedFoodsPanel')
+  );
+}
+
+function NutritionPanel(props) {
+  return (
+  <div>
+    <div>
+      <span className="nutrition_panel">
+        Name: {props.name.replace("_", " ")}
+      </span>
+    </div>
+    <div>
+      <span className="nutrition_panel">
+        Calories: {props.calories}
+      </span>
+    </div>
+    <div>
+      <span className="nutrition_panel">
+        Carbohydrates: {props.carbohydrates}g
+      </span>
+    </div>
+    <div className="nutrition_panel">
+      <span>
+        Protein: {props.protein}g
+      </span>
+    </div>
+    <div>
+      <span className="nutrition_panel">
+        Fat: {props.fat}g
+      </span>
+    </div>
+  </div>
+  );
+}
+
+function updateSelectedFoodNutrition(foodName, foodCals, foodCarbs, foodPro, foodFat) {
+let props = {name:foodName, calories:foodCals, carbohydrates:foodCarbs, protein:foodPro, fat:foodFat};
+  ReactDOM.render(
+  <NutritionPanel {...props} />,
+  document.getElementById('nutrition_panel')
+  );
+}
+
+</script>
+
+
+{% endblock %}
+
