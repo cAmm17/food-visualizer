@@ -76,6 +76,6 @@ ul {
     padding:.1em;
 }
 
-a:link {
+.food_item_link:link {
   color:white;
 }

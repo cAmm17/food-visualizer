@@ -131,7 +131,11 @@
         const intersects = raycaster.intersectObjects( scene.children, true );
         const intersect = intersects[0];
         if (!(typeof intersect==='undefined')) {
-          createFood(intersect.point);
+        //Additional if statement here to prevent foods from being spawned when interacting with
+        //the menu
+          if(intersect.point.x > -20) {
+            createFood(intersect.point);
+          }
         }
 
 
@@ -308,7 +312,7 @@ function updatePhysics( deltaTime ){
 }
 
 function removeFoods() {
-  if(curSelectedFoodNutrition in selectedFoodsLst) {
+  if(curSelectedFoodNutrition in selectedFoodsLst && curSelectedFoodNutrition != 'All') {
     let indicesToRemove = []
     for (let i = 0; i < scene.children.length; i++) {
       if (scene.children[i].name == curSelectedFoodNutrition) {
@@ -381,7 +385,7 @@ function savePortion() {
   <div id="add_food_panel">
 
     <ul>
-      {% for food in available_foods %}<li id="{{ food}}" class="food_item"><a href="javascript:addFood('#{{ food }}');">{{ food.replace("_", " ") }}</a></li>{% endfor %}
+      {% for food in available_foods %}<li id="{{ food}}" class="food_item"><a href="javascript:addFood('#{{ food }}');" class="food_item_link">{{ food.replace("_", " ") }}</a></li>{% endfor %}
     </ul>
 
   </div>
