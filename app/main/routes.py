@@ -21,7 +21,7 @@ def index():
         usernm = current_user.username
     else:
         usernm = ""
-    return render_template('main/index.html', available_foods=available_foods,
+    return render_template('index.html', available_foods=available_foods,
                            initial_foods=init_foods, logged_in=current_user.is_authenticated,
                            username=usernm)
 
@@ -56,7 +56,7 @@ def saved_portions():
     if current_user.is_authenticated:
         cur_user_portions = loadUsersPortions()
         usernm = current_user.username
-        return render_template('main/saved-portions.html', portions=cur_user_portions, username=usernm)
+        return render_template('saved-portions.html', portions=cur_user_portions, username=usernm)
     flash('You must be logged in to access this page')
     return redirect(url_for('authentication.login'))
 
@@ -74,6 +74,6 @@ def load_saved_portion(portion_id):
         models = addFoodModel(food)
         init_foods[food] = {'amount': init_foods[food], 'modelPath': models['newModelPath'],
                             'collisionRadius': models['newCollisionRadius']}
-    return render_template('main/index.html', available_foods=available_foods,
+    return render_template('index.html', available_foods=available_foods,
                            initial_foods=init_foods, logged_in=current_user.is_authenticated,
                            username=usernm)
