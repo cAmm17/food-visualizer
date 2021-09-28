@@ -1,3 +1,10 @@
+"""
+Author: Courtney Amm
+File: config.py
+
+This file holds the configuration data for environent variables needed by flask and the SQL
+database.
+"""
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -9,4 +16,3 @@ class Config(object):
         'postgres://', 'postgresql://') or \
                               'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
