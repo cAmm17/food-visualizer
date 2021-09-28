@@ -51,7 +51,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(64), index=True, unique=True)
-    password_hash = db.Column(db.String(64), index=True, nullable=False)
+    password_hash = db.Column(db.String(255), index=True, nullable=False)
     portions = db.relationship('Portion', backref='user', lazy=False)
 
     def set_password(self, password):
